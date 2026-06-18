@@ -4,7 +4,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { FlaskConical, Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { searchCryptos } from "@/lib/api/binance";
+import { searchCryptos, TOP_CRYPTOS } from "@/lib/api/binance";
 import { simulatorSchema, type SimulatorFormInput } from "@/lib/validators/simulator";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { CryptoAsset, Frequency } from "@/types/simulator";
@@ -23,23 +23,34 @@ const DEFAULT_CRYPTO: CryptoAsset = { id: "BTCEUR", symbol: "BTC", name: "Bitcoi
 
 interface SimulatorFormProps {
   onChange: (values: SimulatorFormInput | null) => void;
+  initialValues?: Partial<SimulatorFormInput> | null;
 }
 
-export function SimulatorForm({ onChange }: SimulatorFormProps) {
+export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
+  const initCrypto = initialValues?.cryptoId
+    ? (TOP_CRYPTOS.find((c) => c.id === initialValues.cryptoId) ?? {
+        id: initialValues.cryptoId,
+        symbol: initialValues.cryptoSymbol ?? initialValues.cryptoId,
+        name: initialValues.cryptoName ?? initialValues.cryptoId,
+      })
+    : DEFAULT_CRYPTO;
+
   const [cryptoQuery, setCryptoQuery] = useState("");
-  const [selectedCrypto, setSelectedCrypto] = useState<CryptoAsset>(DEFAULT_CRYPTO);
+  const [selectedCrypto, setSelectedCrypto] = useState<CryptoAsset>(initCrypto);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [amount, setAmount] = useState("100");
-  const [frequency, setFrequency] = useState<Frequency>("monthly");
-  const [startDate, setStartDate] = useState(DEFAULT_START);
-  const [endDate, setEndDate] = useState(DEFAULT_END);
+  const [amount, setAmount] = useState(
+    initialValues?.amount ? String(initialValues.amount) : "100"
+  );
+  const [frequency, setFrequency] = useState<Frequency>(
+    (initialValues?.frequency as Frequency) ?? "monthly"
+  );
+  const [startDate, setStartDate] = useState(initialValues?.startDate ?? DEFAULT_START);
+  const [endDate, setEndDate] = useState(initialValues?.endDate ?? DEFAULT_END);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const debouncedAmount = useDebounce(amount, 600);
-
   const cryptoResults = useMemo(() => searchCryptos(cryptoQuery), [cryptoQuery]);
 
-  // Emit valid form values on any change
   useEffect(() => {
     const parsed = simulatorSchema.safeParse({
       cryptoId: selectedCrypto.id,
@@ -59,13 +70,8 @@ export function SimulatorForm({ onChange }: SimulatorFormProps) {
     setShowDropdown(false);
   }
 
-  function handleCryptoBlur() {
-    setTimeout(() => setShowDropdown(false), 150);
-  }
-
   return (
     <div className="flex flex-col gap-5">
-      {/* Header */}
       <div
         className="flex items-center gap-2 px-4 py-3 rounded-lg"
         style={{ backgroundColor: "#d97706" }}
@@ -116,7 +122,7 @@ export function SimulatorForm({ onChange }: SimulatorFormProps) {
                 setCryptoQuery(e.target.value);
                 setShowDropdown(true);
               }}
-              onBlur={handleCryptoBlur}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
               placeholder="Rechercher une crypto..."
               className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm outline-none border"
               style={{
@@ -131,10 +137,7 @@ export function SimulatorForm({ onChange }: SimulatorFormProps) {
         {showDropdown && (
           <ul
             className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border overflow-y-auto max-h-48"
-            style={{
-              backgroundColor: "var(--color-bg-card)",
-              borderColor: "var(--color-border)",
-            }}
+            style={{ backgroundColor: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
           >
             {cryptoResults.map((crypto) => (
               <li key={crypto.id}>
@@ -153,7 +156,6 @@ export function SimulatorForm({ onChange }: SimulatorFormProps) {
         )}
       </div>
 
-      {/* Amount */}
       <Input
         label="Montant (€)"
         type="number"
@@ -164,7 +166,6 @@ export function SimulatorForm({ onChange }: SimulatorFormProps) {
         placeholder="100"
       />
 
-      {/* Frequency */}
       <Select
         label="Fréquence"
         value={frequency}
@@ -172,7 +173,6 @@ export function SimulatorForm({ onChange }: SimulatorFormProps) {
         options={FREQUENCY_OPTIONS}
       />
 
-      {/* Dates */}
       <Input
         label="Depuis"
         type="date"
