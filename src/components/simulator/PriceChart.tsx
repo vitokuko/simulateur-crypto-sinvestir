@@ -90,11 +90,14 @@ export function PriceChart({ data, symbol }: PriceChartProps) {
             width={60}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ fontSize: 12, color: "#6b8bb5", paddingTop: 8 }} />
+          <Legend
+            wrapperStyle={{ fontSize: 12, color: "#6b8bb5", paddingTop: 8 }}
+            formatter={(value: string) => <span style={{ color: "#6b8bb5" }}>{value}</span>}
+          />
           <Area
             type="monotone"
             dataKey="valeur"
-            name={`Valeur (${symbol})`}
+            name={`Valeur ${symbol} (€)`}
             stroke="#2563eb"
             strokeWidth={2}
             fill="url(#gradValeur)"
