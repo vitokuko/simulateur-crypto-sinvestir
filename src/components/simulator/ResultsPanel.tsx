@@ -104,7 +104,10 @@ export function ResultsPanel({ result, symbol, isLoading, error }: ResultsPanelP
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-bold" style={{ color: "var(--color-text-primary)" }}>
+      <h2
+        className="text-xl font-bold pl-4 border-l-4"
+        style={{ color: "var(--color-text-primary)", borderColor: "var(--color-accent)" }}
+      >
         Vos résultats
       </h2>
 
@@ -121,12 +124,14 @@ export function ResultsPanel({ result, symbol, isLoading, error }: ResultsPanelP
         </p>
         <div className="flex flex-wrap gap-4 text-xs mb-4">
           <span style={{ color: "var(--color-accent)" }}>
-            Investi {formatEur(result.totalInvested)}
+            Somme investie&nbsp; <strong>{formatEur(result.totalInvested)}</strong>
           </span>
-          <span style={{ color: isPositive ? "var(--color-success)" : "var(--color-danger)" }}>
-            {isPositive ? "+" : ""}
-            {formatEur(result.gainLoss)} ({isPositive ? "+" : ""}
-            {result.gainLossPercent.toFixed(2)}%)
+          <span style={{ color: isPositive ? "#eab308" : "var(--color-danger)" }}>
+            {isPositive ? "Plus-value" : "Moins-value"}&nbsp;{" "}
+            <strong>
+              {isPositive ? "+" : ""}
+              {formatEur(result.gainLoss)}
+            </strong>
           </span>
         </div>
         {/* Progress bar */}
@@ -143,7 +148,7 @@ export function ResultsPanel({ result, symbol, isLoading, error }: ResultsPanelP
               className="h-full"
               style={{
                 width: `${gainPct}%`,
-                backgroundColor: isPositive ? "#c9a227" : "var(--color-danger)",
+                backgroundColor: isPositive ? "#eab308" : "var(--color-danger)",
               }}
             />
           </div>
