@@ -76,25 +76,33 @@ function SimulateurCryptoContent() {
     <div className="min-h-full p-4 md:p-10">
       <div className="max-w-5xl mx-auto">
         {/* Title block */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-2">
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center gap-4 mb-3">
             <div
-              className="h-px flex-1 max-w-16"
+              className="h-px flex-1 max-w-12"
               style={{ backgroundColor: "var(--color-accent)" }}
             />
             <h1
               className="text-2xl font-bold tracking-widest uppercase"
               style={{ color: "var(--color-text-primary)" }}
             >
-              Simulateur Crypto
+              SIMULATEUR CRYPTO
             </h1>
             <div
-              className="h-px flex-1 max-w-16"
+              className="h-px flex-1 max-w-12"
               style={{ backgroundColor: "var(--color-accent)" }}
             />
           </div>
-          <p className="text-sm" style={{ color: "var(--color-accent)" }}>
+          <p className="text-base font-medium mb-4" style={{ color: "var(--color-accent)" }}>
             Simulez vos gains crypto en DCA ou en investissement unique
+          </p>
+          <p
+            className="text-sm leading-relaxed max-w-2xl mx-auto"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            Combien peut vous rapporter un investissement en crypto en fonction du montant investi,
+            de la fréquence des achats et de la période choisie ? Grâce au simulateur
+            S&apos;investir, visualisez la puissance du DCA sur vos actifs numériques préférés.
           </p>
         </div>
 
@@ -108,8 +116,9 @@ function SimulateurCryptoContent() {
         >
           <Info size={16} className="shrink-0 mt-0.5" style={{ color: "var(--color-accent)" }} />
           <p style={{ color: "var(--color-text-secondary)" }}>
-            Cet outil a uniquement une vocation pédagogique. Les résultats sont basés sur des
-            données historiques et ne constituent pas un conseil en investissement.
+            Cet outil a uniquement une vocation pédagogique et illustrative. Il permet de visualiser
+            l&apos;effet des achats réguliers dans le temps à partir de données historiques réelles,
+            sans constituer un conseil en investissement ni une promesse de performance.
           </p>
         </div>
 

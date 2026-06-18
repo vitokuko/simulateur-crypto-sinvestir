@@ -63,25 +63,6 @@ function NavContent({ pathname, onClose }: { pathname: string; onClose?: () => v
         </div>
       </div>
 
-      {/* Logo */}
-      <div
-        className="flex items-center gap-3 px-5 py-3 border-b"
-        style={{ borderColor: "var(--color-border)" }}
-      >
-        <div
-          className="flex items-center justify-center w-9 h-9 rounded-lg font-bold text-sm"
-          style={{ backgroundColor: "#c9a227", color: "#0d1117" }}
-        >
-          S&apos;
-        </div>
-        <span
-          className="font-bold text-base tracking-widest uppercase"
-          style={{ color: "var(--color-text-primary)" }}
-        >
-          SIMULATEURS
-        </span>
-      </div>
-
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map(({ href, label, icon: Icon }) => {
@@ -142,13 +123,16 @@ export function Sidebar() {
     <>
       {/* Desktop sidebar */}
       <aside
-        className="hidden md:flex flex-col w-64 min-h-full shrink-0 relative"
-        style={{ backgroundColor: "var(--color-bg-sidebar)" }}
+        className="hidden md:flex flex-col w-64 shrink-0 relative border-r"
+        style={{
+          backgroundColor: "var(--color-bg-sidebar)",
+          borderColor: "var(--color-border)",
+        }}
       >
         <NavContent pathname={pathname} />
         {/* Collapse arrow */}
         <button
-          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center border"
+          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center border z-10"
           style={{
             backgroundColor: "var(--color-bg-card)",
             borderColor: "var(--color-border)",

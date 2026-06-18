@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Header } from "@/components/layout/Header";
 import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -22,7 +23,11 @@ export default function RootLayout({
       <body className={`${inter.className} h-full flex`}>
         <Providers>
           <Sidebar />
-          <main className="flex-1 overflow-y-auto pt-14 md:pt-0">{children}</main>
+          {/* Right column: header + scrollable content */}
+          <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <Header />
+            <main className="flex-1 overflow-y-auto pt-14 md:pt-0">{children}</main>
+          </div>
         </Providers>
       </body>
     </html>
