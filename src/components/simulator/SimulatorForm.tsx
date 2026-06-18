@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { FlaskConical, Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { Button } from "@/components/ui/Button";
 import { searchCryptos } from "@/lib/api/binance";
 import { simulatorSchema, type SimulatorFormInput } from "@/lib/validators/simulator";
+import { useDebounce } from "@/hooks/useDebounce";
 import type { CryptoAsset, Frequency } from "@/types/simulator";
 
 const FREQUENCY_OPTIONS = [
@@ -19,14 +19,13 @@ const FREQUENCY_OPTIONS = [
 const DEFAULT_END = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 const DEFAULT_START = new Date(Date.now() - 366 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-const DEFAULT_CRYPTO: CryptoAsset = { id: "bitcoin", symbol: "BTC", name: "Bitcoin" };
+const DEFAULT_CRYPTO: CryptoAsset = { id: "BTCEUR", symbol: "BTC", name: "Bitcoin" };
 
 interface SimulatorFormProps {
-  onSubmit: (values: SimulatorFormInput) => void;
-  isLoading: boolean;
+  onChange: (values: SimulatorFormInput | null) => void;
 }
 
-export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
+export function SimulatorForm({ onChange }: SimulatorFormProps) {
   const [cryptoQuery, setCryptoQuery] = useState("");
   const [selectedCrypto, setSelectedCrypto] = useState<CryptoAsset>(DEFAULT_CRYPTO);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -34,10 +33,25 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
   const [frequency, setFrequency] = useState<Frequency>("monthly");
   const [startDate, setStartDate] = useState(DEFAULT_START);
   const [endDate, setEndDate] = useState(DEFAULT_END);
-  const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const debouncedAmount = useDebounce(amount, 600);
+
   const cryptoResults = useMemo(() => searchCryptos(cryptoQuery), [cryptoQuery]);
+
+  // Emit valid form values on any change
+  useEffect(() => {
+    const parsed = simulatorSchema.safeParse({
+      cryptoId: selectedCrypto.id,
+      cryptoName: selectedCrypto.name,
+      cryptoSymbol: selectedCrypto.symbol,
+      amount: parseFloat(debouncedAmount),
+      frequency,
+      startDate,
+      endDate,
+    });
+    onChange(parsed.success ? parsed.data : null);
+  }, [selectedCrypto, debouncedAmount, frequency, startDate, endDate, onChange]);
 
   function handleSelectCrypto(crypto: CryptoAsset) {
     setSelectedCrypto(crypto);
@@ -45,43 +59,12 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
     setShowDropdown(false);
   }
 
-  function handleCryptoInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setCryptoQuery(e.target.value);
-    setShowDropdown(true);
-  }
-
   function handleCryptoBlur() {
     setTimeout(() => setShowDropdown(false), 150);
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const parsed = simulatorSchema.safeParse({
-      cryptoId: selectedCrypto.id,
-      cryptoName: selectedCrypto.name,
-      cryptoSymbol: selectedCrypto.symbol,
-      amount: parseFloat(amount),
-      frequency,
-      startDate,
-      endDate,
-    });
-
-    if (!parsed.success) {
-      const fieldErrors: Record<string, string> = {};
-      parsed.error.issues.forEach((issue) => {
-        const field = issue.path[0] as string;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    setErrors({});
-    onSubmit(parsed.data);
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5">
       {/* Header */}
       <div
         className="flex items-center gap-2 px-4 py-3 rounded-lg"
@@ -97,7 +80,6 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
           Actif numérique
         </label>
 
-        {/* Selected crypto display or search input */}
         {!showDropdown && !cryptoQuery ? (
           <button
             type="button"
@@ -109,7 +91,7 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
             style={{
               backgroundColor: "var(--color-bg-input)",
               color: "var(--color-text-primary)",
-              borderColor: errors.cryptoId ? "var(--color-danger)" : "var(--color-border)",
+              borderColor: "var(--color-border)",
             }}
           >
             <span className="flex items-center gap-2">
@@ -130,14 +112,17 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
               ref={inputRef}
               type="text"
               value={cryptoQuery}
-              onChange={handleCryptoInputChange}
+              onChange={(e) => {
+                setCryptoQuery(e.target.value);
+                setShowDropdown(true);
+              }}
               onBlur={handleCryptoBlur}
               placeholder="Rechercher une crypto..."
               className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm outline-none border"
               style={{
                 backgroundColor: "var(--color-bg-input)",
                 color: "var(--color-text-primary)",
-                borderColor: errors.cryptoId ? "var(--color-danger)" : "var(--color-border)",
+                borderColor: "var(--color-border)",
               }}
             />
           </div>
@@ -166,12 +151,6 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
             ))}
           </ul>
         )}
-
-        {errors.cryptoId && (
-          <p className="text-xs" style={{ color: "var(--color-danger)" }}>
-            {errors.cryptoId}
-          </p>
-        )}
       </div>
 
       {/* Amount */}
@@ -182,7 +161,6 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
         step="any"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
-        error={errors.amount}
         placeholder="100"
       />
 
@@ -192,7 +170,6 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
         value={frequency}
         onChange={(e) => setFrequency(e.target.value as Frequency)}
         options={FREQUENCY_OPTIONS}
-        error={errors.frequency}
       />
 
       {/* Dates */}
@@ -201,7 +178,6 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
         type="date"
         value={startDate}
         onChange={(e) => setStartDate(e.target.value)}
-        error={errors.startDate}
         max={endDate}
       />
 
@@ -210,14 +186,9 @@ export function SimulatorForm({ onSubmit, isLoading }: SimulatorFormProps) {
         type="date"
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
-        error={errors.endDate}
         min={startDate}
         max={DEFAULT_END}
       />
-
-      <Button type="submit" loading={isLoading}>
-        Simuler
-      </Button>
-    </form>
+    </div>
   );
 }

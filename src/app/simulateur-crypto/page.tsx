@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { SimulatorForm } from "@/components/simulator/SimulatorForm";
 import { ResultsPanel } from "@/components/simulator/ResultsPanel";
 import { useHistoricalPrices } from "@/hooks/useHistoricalPrices";
@@ -8,7 +8,6 @@ import { calculateSimulation } from "@/lib/calculations/simulator";
 import type { SimulatorFormInput } from "@/lib/validators/simulator";
 
 const API_ERRORS: Record<string, string> = {
-  RATE_LIMIT: "Les données sont temporairement indisponibles. Réessayez dans quelques instants.",
   NOT_FOUND: "Aucune donnée disponible pour cette cryptomonnaie.",
   NO_DATA: "Aucune donnée disponible pour cette période. Essayez une date de début ultérieure.",
   API_ERROR: "Une erreur est survenue lors de la récupération des données. Réessayez.",
@@ -16,6 +15,10 @@ const API_ERRORS: Record<string, string> = {
 
 export default function SimulateurCryptoPage() {
   const [formValues, setFormValues] = useState<SimulatorFormInput | null>(null);
+
+  const handleChange = useCallback((values: SimulatorFormInput | null) => {
+    setFormValues(values);
+  }, []);
 
   const {
     data: prices,
@@ -57,7 +60,7 @@ export default function SimulateurCryptoPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="rounded-xl p-6" style={{ backgroundColor: "var(--color-bg-card)" }}>
-            <SimulatorForm onSubmit={setFormValues} isLoading={isLoading} />
+            <SimulatorForm onChange={handleChange} />
           </div>
 
           <div className="rounded-xl p-6" style={{ backgroundColor: "var(--color-bg-card)" }}>
