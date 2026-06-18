@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { FlaskConical, Search, ChevronDown } from "lucide-react";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { Search, ChevronDown } from "lucide-react";
 import { searchCryptos, TOP_CRYPTOS } from "@/lib/api/binance";
 import { simulatorSchema, type SimulatorFormInput } from "@/lib/validators/simulator";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -18,7 +16,6 @@ const FREQUENCY_OPTIONS = [
 
 const DEFAULT_END = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 const DEFAULT_START = new Date(Date.now() - 366 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-
 const DEFAULT_CRYPTO: CryptoAsset = { id: "BTCEUR", symbol: "BTC", name: "Bitcoin" };
 
 interface SimulatorFormProps {
@@ -26,13 +23,38 @@ interface SimulatorFormProps {
   initialValues?: Partial<SimulatorFormInput> | null;
 }
 
+function FieldRow({
+  label,
+  unit,
+  children,
+}: {
+  label: string;
+  unit?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
+      <p className="text-xs mb-2" style={{ color: "var(--color-text-secondary)" }}>
+        {label}
+      </p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex-1">{children}</div>
+        {unit && (
+          <span
+            className="text-sm font-medium shrink-0"
+            style={{ color: "var(--color-text-muted)" }}
+          >
+            {unit}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
   const initCrypto = initialValues?.cryptoId
-    ? (TOP_CRYPTOS.find((c) => c.id === initialValues.cryptoId) ?? {
-        id: initialValues.cryptoId,
-        symbol: initialValues.cryptoSymbol ?? initialValues.cryptoId,
-        name: initialValues.cryptoName ?? initialValues.cryptoId,
-      })
+    ? (TOP_CRYPTOS.find((c) => c.id === initialValues.cryptoId) ?? DEFAULT_CRYPTO)
     : DEFAULT_CRYPTO;
 
   const [cryptoQuery, setCryptoQuery] = useState("");
@@ -47,7 +69,6 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
   const [startDate, setStartDate] = useState(initialValues?.startDate ?? DEFAULT_START);
   const [endDate, setEndDate] = useState(initialValues?.endDate ?? DEFAULT_END);
   const inputRef = useRef<HTMLInputElement>(null);
-
   const debouncedAmount = useDebounce(amount, 600);
   const cryptoResults = useMemo(() => searchCryptos(cryptoQuery), [cryptoQuery]);
 
@@ -64,54 +85,50 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
     onChange(parsed.success ? parsed.data : null);
   }, [selectedCrypto, debouncedAmount, frequency, startDate, endDate, onChange]);
 
-  function handleSelectCrypto(crypto: CryptoAsset) {
-    setSelectedCrypto(crypto);
-    setCryptoQuery("");
-    setShowDropdown(false);
-  }
+  const inputStyle = {
+    background: "transparent",
+    color: "var(--color-text-primary)",
+    outline: "none",
+    width: "100%",
+    fontSize: "1rem",
+    fontWeight: "600",
+  };
 
   return (
-    <div className="flex flex-col gap-5">
-      <div
-        className="flex items-center gap-2 px-4 py-3 rounded-lg"
-        style={{ backgroundColor: "#d97706" }}
-      >
-        <FlaskConical size={18} className="text-white" />
-        <span className="text-white font-semibold text-sm">Simulation</span>
-      </div>
-
-      {/* Crypto search */}
-      <div className="flex flex-col gap-1.5 relative">
-        <label className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+    <div>
+      {/* Crypto */}
+      <div className="py-4 border-b relative" style={{ borderColor: "var(--color-border)" }}>
+        <p className="text-xs mb-2" style={{ color: "var(--color-text-secondary)" }}>
           Actif numérique
-        </label>
-
-        {!showDropdown && !cryptoQuery ? (
+        </p>
+        {!showDropdown ? (
           <button
             type="button"
             onClick={() => {
               setShowDropdown(true);
               setTimeout(() => inputRef.current?.focus(), 50);
             }}
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm border text-left"
-            style={{
-              backgroundColor: "var(--color-bg-input)",
-              color: "var(--color-text-primary)",
-              borderColor: "var(--color-border)",
-            }}
+            className="w-full flex items-center justify-between"
           >
-            <span className="flex items-center gap-2">
-              <Search size={14} style={{ color: "var(--color-text-muted)" }} />
+            <span
+              className="text-base font-semibold"
+              style={{ color: "var(--color-text-primary)" }}
+            >
               {selectedCrypto.name}
-              <span style={{ color: "var(--color-text-muted)" }}>({selectedCrypto.symbol})</span>
+              <span
+                className="ml-2 text-sm font-normal"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                ({selectedCrypto.symbol})
+              </span>
             </span>
-            <ChevronDown size={14} style={{ color: "var(--color-text-muted)" }} />
+            <ChevronDown size={16} style={{ color: "var(--color-text-muted)" }} />
           </button>
         ) : (
           <div className="relative">
             <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2"
+              size={14}
+              className="absolute left-0 top-1/2 -translate-y-1/2"
               style={{ color: "var(--color-text-muted)" }}
             />
             <input
@@ -123,28 +140,27 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
                 setShowDropdown(true);
               }}
               onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-              placeholder="Rechercher une crypto..."
-              className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm outline-none border"
-              style={{
-                backgroundColor: "var(--color-bg-input)",
-                color: "var(--color-text-primary)",
-                borderColor: "var(--color-border)",
-              }}
+              placeholder="Rechercher..."
+              style={{ ...inputStyle, paddingLeft: "1.5rem" }}
             />
           </div>
         )}
 
         {showDropdown && (
           <ul
-            className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border overflow-y-auto max-h-48"
+            className="absolute left-0 right-0 z-50 mt-2 rounded-xl border overflow-y-auto max-h-52 shadow-xl"
             style={{ backgroundColor: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
           >
             {cryptoResults.map((crypto) => (
               <li key={crypto.id}>
                 <button
                   type="button"
-                  onMouseDown={() => handleSelectCrypto(crypto)}
-                  className="w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:opacity-80 transition-opacity"
+                  onMouseDown={() => {
+                    setSelectedCrypto(crypto);
+                    setCryptoQuery("");
+                    setShowDropdown(false);
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3 text-sm hover:opacity-70 transition-opacity"
                   style={{ color: "var(--color-text-primary)" }}
                 >
                   <span>{crypto.name}</span>
@@ -156,39 +172,60 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
         )}
       </div>
 
-      <Input
-        label="Montant (€)"
-        type="number"
-        min="1"
-        step="any"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        placeholder="100"
-      />
+      {/* Amount */}
+      <FieldRow label="Montant" unit="EUR">
+        <input
+          type="number"
+          min="1"
+          step="any"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          style={inputStyle}
+          placeholder="100"
+        />
+      </FieldRow>
 
-      <Select
-        label="Fréquence"
-        value={frequency}
-        onChange={(e) => setFrequency(e.target.value as Frequency)}
-        options={FREQUENCY_OPTIONS}
-      />
+      {/* Frequency */}
+      <FieldRow label="Fréquence d'investissement">
+        <select
+          value={frequency}
+          onChange={(e) => setFrequency(e.target.value as Frequency)}
+          style={{ ...inputStyle, cursor: "pointer" }}
+        >
+          {FREQUENCY_OPTIONS.map((o) => (
+            <option
+              key={o.value}
+              value={o.value}
+              style={{ backgroundColor: "var(--color-bg-card)" }}
+            >
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </FieldRow>
 
-      <Input
-        label="Depuis"
-        type="date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-        max={endDate}
-      />
+      {/* Start date */}
+      <FieldRow label="Date de début">
+        <input
+          type="date"
+          value={startDate}
+          max={endDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          style={inputStyle}
+        />
+      </FieldRow>
 
-      <Input
-        label="Jusqu'au"
-        type="date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-        min={startDate}
-        max={DEFAULT_END}
-      />
+      {/* End date */}
+      <FieldRow label="Date de fin">
+        <input
+          type="date"
+          value={endDate}
+          min={startDate}
+          max={DEFAULT_END}
+          onChange={(e) => setEndDate(e.target.value)}
+          style={inputStyle}
+        />
+      </FieldRow>
     </div>
   );
 }
