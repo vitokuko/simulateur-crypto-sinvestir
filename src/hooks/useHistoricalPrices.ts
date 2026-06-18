@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { fetchHistoricalPrices } from "@/lib/api/coingecko";
+import { fetchHistoricalPrices } from "@/lib/api/binance";
 
 export function useHistoricalPrices(
   cryptoId: string,

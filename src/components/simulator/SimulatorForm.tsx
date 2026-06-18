@@ -5,7 +5,7 @@ import { FlaskConical, Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
-import { searchCryptos } from "@/lib/api/coingecko";
+import { searchCryptos } from "@/lib/api/binance";
 import { simulatorSchema, type SimulatorFormInput } from "@/lib/validators/simulator";
 import type { CryptoAsset, Frequency } from "@/types/simulator";
 
