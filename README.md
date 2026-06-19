@@ -4,7 +4,7 @@ Reproduction fidèle du simulateur crypto de [sinvestir.fr](https://sinvestir.fr
 
 ## Démo
 
-→ [simulateur-crypto-sinvestir.vercel.app](https://simulateur-crypto-sinvestir.vercel.app/simulateur-crypto)
+→ [simulateur-crypto-sinvestir-pied.vercel.app](https://simulateur-crypto-sinvestir-pied.vercel.app/simulateur-crypto)
 
 ## Lancer le projet
 
@@ -27,7 +27,7 @@ Aucune variable d'environnement requise. Les données historiques proviennent de
 - **Simulateur DCA** : investissement unique ou récurrent (mensuel, hebdomadaire, quotidien)
 - **+7 000 cryptos** : recherche par nom avec suggestions instantanées
 - **KPI cards** : capital final, plus-value (€ et %), tokens acquis, prix moyen d'achat, somme investie
-- **3 types de graphiques** : courbe (area), barres empilées, donut — sélecteur avec icônes
+- **2 graphiques** : Historique (valeur / investi / prix du token) et Gains/Pertes (zone verte/rouge dynamique)
 - **Partage par URL** : tous les paramètres encodés dans l'URL, simulation restaurée automatiquement
 - **Export PNG** : capture des résultats via `html-to-image`
 - **Design S'investir** : dark theme, sidebar fixe, typographie, couleurs fidèles au site de référence
@@ -44,8 +44,8 @@ src/
 │   ├── layout/Sidebar.tsx          # Navigation fixe desktop + mobile collapsible
 │   ├── simulator/
 │   │   ├── SimulatorForm.tsx       # Formulaire avec validation Zod
-│   │   ├── ResultsPanel.tsx        # KPI cards
-│   │   └── PriceChart.tsx          # Recharts (Area / Bar / Pie)
+│   │   ├── ResultsPanel.tsx        # Chiffres clés (liste avec icônes)
+│   │   └── PriceChart.tsx          # Recharts (Historique + Gains/Pertes)
 │   └── ui/
 │       ├── Toast.tsx               # Système de notifications (Context)
 │       └── ComingSoon.tsx          # Page placeholder routes non implémentées
