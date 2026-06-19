@@ -243,7 +243,7 @@ const IconChevron = () => (
 
 const NAV_ITEMS = [
   { href: "/", label: "Tableau de bord", icon: <IconDashboard /> },
-  { href: "/simulateur-crypto", label: "Les simulateurs", icon: <IconSimulateurs /> },
+  { href: "/simulateurs", label: "Les simulateurs", icon: <IconSimulateurs /> },
   { href: "/comparateurs", label: "Les comparateurs", icon: <IconComparateurs /> },
   { href: "/mes-simulations", label: "Mes simulations", icon: <IconSimulations /> },
   { href: "/formation", label: "Formation offerte", icon: <IconFormation /> },
@@ -307,21 +307,40 @@ function NavContent({
           <li>
             <ul role="list" className="space-y-1">
               {NAV_ITEMS.map(({ href, label, icon }) => {
-                const isActive = pathname === href;
+                const isActive =
+                  pathname === href ||
+                  (href === "/simulateurs" && pathname.startsWith("/simulateur"));
                 return (
                   <li key={href}>
                     <Link
                       href={href}
                       onClick={onClose}
                       title={collapsed ? label : undefined}
-                      className={`border-l-2 flex items-center py-3 text-sm font-normal transition-all duration-300 whitespace-nowrap overflow-hidden ${collapsed ? "justify-center px-0 border-l-transparent" : "gap-x-3 px-6"}`}
+                      className={`flex items-center py-3 text-sm font-normal transition-all duration-300 whitespace-nowrap overflow-hidden ${
+                        collapsed
+                          ? "justify-center px-0 border-l-2 border-l-transparent"
+                          : `gap-x-3 px-6 border-l-2 ${isActive ? "" : "border-l-transparent"}`
+                      }`}
                       style={{
                         color: isActive ? "#fff" : "rgba(255,255,255,0.3)",
                         borderColor: !collapsed && isActive ? "#1098F7" : "transparent",
-                        backgroundColor: isActive ? "rgba(255,255,255,0.05)" : "transparent",
+                        backgroundColor: !collapsed && isActive ? "rgba(255,255,255,0.05)" : "transparent",
                       }}
                     >
-                      {icon}
+                      {/* En collapsed : background uniquement sur l'icône */}
+                      {collapsed ? (
+                        <span
+                          className="flex items-center justify-center w-10 h-10 rounded-xl transition-colors duration-300"
+                          style={{
+                            backgroundColor: isActive ? "rgba(16,152,247,0.15)" : "transparent",
+                            color: isActive ? "#1098F7" : "rgba(255,255,255,0.3)",
+                          }}
+                        >
+                          {icon}
+                        </span>
+                      ) : (
+                        icon
+                      )}
                       {!collapsed && <span className="truncate">{label}</span>}
                     </Link>
                   </li>

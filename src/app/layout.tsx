@@ -104,6 +104,25 @@ export default function RootLayout({
             <main className="pt-0 pb-10 sm:py-10 relative z-10">
               <div className="px-4 sm:px-6 lg:px-8">{children}</div>
             </main>
+
+            <footer className="space-y-10 px-4 sm:px-6 lg:px-8 pb-10 sm:pb-16">
+              <hr className="border-[#7899ce33] h-[1px] w-full max-w-xl mx-auto" />
+              <p className="text-[#7899ce99] text-xs font-light text-center text-balance">
+                Les simulateurs proposés sont mis à disposition gratuitement, à des fins exclusivement pédagogiques et informatives. Ils ont pour but d&apos;aider les utilisateurs à mieux comprendre certaines notions ou à estimer des situations selon les informations saisies. Ils ne constituent en aucun cas un conseil en investissement, en fiscalité ou une recommandation personnalisée. Investir comporte des risques, y compris de perte en capital. Les performances passées ne préjugent en rien des performances futures. Les résultats obtenus ne doivent pas être interprétés comme des recommandations personnalisées ou des garanties de performance. Ils sont purement indicatifs et peuvent varier en fonction des données saisies. Chaque utilisateur demeure seul responsable de l&apos;usage qu&apos;il fait des résultats obtenus par le biais des simulateurs. L&apos;utilisation de ces outils ne saurait engager la responsabilité de l&apos;éditeur ou de son représentant légal, aux décisions prises sur leur base.
+              </p>
+              <p className="text-white text-sm font-light text-center text-balance">
+                Copyright © 2026 |{" "}
+                <a href="https://sinvestir.fr/conditions-generales-de-vente-et-d-utilisation/" rel="noopener noreferrer" target="_blank" className="hover:underline">CGVU</a>
+                {" "}|{" "}
+                <a href="https://sinvestir.fr/mentions_legales/" rel="noopener noreferrer" target="_blank" className="hover:underline">Mentions légales</a>
+                {" "}|{" "}
+                <a href="https://sinvestir.fr/politique-de-confidentialite/" rel="noopener noreferrer" target="_blank" className="hover:underline">Politique de confidentialité</a>
+                {" "}|{" "}
+                <a href="/notice" rel="noopener noreferrer" target="_blank" className="hover:underline">Notice simulateur</a>
+                {" "}|{" "}
+                <a href="https://pulsion-studio.com/?utm_source=simulateurs.sinvestir.fr" rel="noopener noreferrer" target="_blank" className="hover:underline">Création PULSION STUDIO</a>
+              </p>
+            </footer>
           </div>
         </Providers>
       </body>

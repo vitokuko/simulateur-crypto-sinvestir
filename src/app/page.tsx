@@ -2,15 +2,14 @@ import Link from "next/link";
 
 function ArrowIcon() {
   return (
-    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white shrink-0">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M7 17L17 7M17 7H7M17 7V17"
-          stroke="#0b0f1a"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+    <div className="w-12 h-12 bg-white cursor-pointer rounded-full flex items-center justify-center shrink-0">
+      <svg
+        className="w-6 h-6 text-[#0b0f1a] transform rotate-45 group-hover:rotate-90 transition-transform duration-[400ms]"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
       </svg>
     </div>
   );
@@ -95,17 +94,14 @@ export default function Home() {
           <Link
             key={card.href}
             href={card.href}
-            className="relative flex flex-col justify-end rounded-2xl p-8 min-h-52 overflow-hidden transition-opacity hover:opacity-90"
-            style={{
-              backgroundColor: card.dark ? "#0f2055" : "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
+            className="group bg-white/5 rounded-2xl p-8 border border-white/10 relative transition-all duration-[400ms] hover:shadow-[0_0_25px_rgba(255,255,255,0.15)]"
+            style={{ backgroundColor: card.dark ? "#0f2055" : undefined }}
           >
             <div className="absolute top-6 right-6">
               <ArrowIcon />
             </div>
-            <h2 className="text-2xl font-normal text-white mb-2">{card.title}</h2>
-            <p className="text-sm font-light" style={{ color: "#7899ce" }}>
+            <h2 className="text-2xl font-normal text-white mb-4 mt-12">{card.title}</h2>
+            <p className="text-sm font-light leading-relaxed max-w-lg text-balance" style={{ color: "#7899ce" }}>
               {card.description}
             </p>
           </Link>
@@ -165,17 +161,13 @@ export default function Home() {
             <Link
               key={card.title}
               href={card.href}
-              className="relative flex flex-col justify-end rounded-2xl p-8 flex-1 min-h-36 overflow-hidden transition-opacity hover:opacity-90"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
+              className="group bg-white/5 rounded-2xl p-8 border border-white/10 relative flex-1 min-h-36 transition-all duration-[400ms] hover:shadow-[0_0_25px_rgba(255,255,255,0.15)]"
             >
               <div className="absolute top-6 right-6">
                 <ArrowIcon />
               </div>
-              <h2 className="text-xl font-normal text-white mb-1">{card.title}</h2>
-              <p className="text-sm font-light" style={{ color: "#7899ce" }}>
+              <h2 className="text-xl font-normal text-white mb-1 mt-12">{card.title}</h2>
+              <p className="text-sm font-light leading-relaxed" style={{ color: "#7899ce" }}>
                 {card.description}
               </p>
             </Link>
