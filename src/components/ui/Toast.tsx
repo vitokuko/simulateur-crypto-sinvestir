@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { TOAST_DURATION } from "@/lib/constants";
 
 interface ToastState {
   message: string;
@@ -26,7 +27,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!toast.visible) return;
-    const t = setTimeout(() => setToast((p) => ({ ...p, visible: false })), 3000);
+    const t = setTimeout(() => setToast((p) => ({ ...p, visible: false })), TOAST_DURATION);
     return () => clearTimeout(t);
   }, [toast.visible, toast.message]);
 

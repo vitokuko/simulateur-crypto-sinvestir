@@ -6,6 +6,7 @@ import { searchCryptos, TOP_CRYPTOS } from "@/lib/api/binance";
 import { simulatorSchema, type SimulatorFormInput } from "@/lib/validators/simulator";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { CryptoAsset, Frequency } from "@/types/simulator";
+import { BINANCE_MIN_DATE, DEBOUNCE_DELAY } from "@/lib/constants";
 
 const FREQUENCY_OPTIONS = [
   { value: "one-shot", label: "Investissement unique" },
@@ -90,7 +91,7 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
   const [startDate, setStartDate] = useState(initialValues?.startDate ?? defaults.start);
   const [endDate, setEndDate] = useState(initialValues?.endDate ?? defaults.end);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debouncedAmount = useDebounce(amount, 600);
+  const debouncedAmount = useDebounce(amount, DEBOUNCE_DELAY);
   const cryptoResults = useMemo(() => searchCryptos(cryptoQuery), [cryptoQuery]);
 
   useEffect(() => {
@@ -214,7 +215,7 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
         <input
           type="date"
           value={startDate}
-          min="2020-01-03"
+          min={BINANCE_MIN_DATE}
           max={endDate}
           onChange={(e) => setStartDate(e.target.value)}
           className="date-input"

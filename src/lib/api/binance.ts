@@ -1,5 +1,8 @@
 import type { CryptoAsset, PriceDataPoint } from "@/types/simulator";
 
+// Binance kline tuple: [openTime, open, high, low, close, volume, ...]
+type BinanceKline = [number, string, string, string, string, string, ...unknown[]];
+
 const BINANCE_BASE = "https://api.binance.com/api/v3";
 
 // Cryptos available as EUR pairs on Binance
@@ -48,8 +51,7 @@ async function fetchKlines(
   interval: string,
   startTime: number,
   endTime: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any[][]> {
+): Promise<BinanceKline[]> {
   const url = `${BINANCE_BASE}/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=1000`;
   const res = await fetch(url, { headers: { Accept: "application/json" } });
   if (!res.ok) {
@@ -72,15 +74,14 @@ export async function fetchHistoricalPrices(
   const intervalMs = interval === "1d" ? 86_400_000 : 3_600_000;
 
   // Paginate: Binance caps at 1000 candles per request
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const allCandles: any[][] = [];
+  const allCandles: BinanceKline[] = [];
   let cursor = startTime;
 
   while (cursor < endTime) {
     const batch = await fetchKlines(symbol, interval, cursor, endTime);
     if (!batch || batch.length === 0) break;
     allCandles.push(...batch);
-    const lastOpenTime = batch[batch.length - 1][0] as number;
+    const lastOpenTime = batch[batch.length - 1][0];
     cursor = lastOpenTime + intervalMs;
     if (batch.length < 1000) break;
   }
