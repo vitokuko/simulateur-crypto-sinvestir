@@ -59,12 +59,16 @@ function calculateOneShot(
   const gainLoss = finalValue - amount;
   const gainLossPercent = (gainLoss / amount) * 100;
 
-  const chartData: ChartDataPoint[] = prices.map((p) => ({
-    date: p.date,
-    valeur: tokensAcquired * p.price,
-    investi: amount,
-    prix: p.price,
-  }));
+  const chartData: ChartDataPoint[] = prices.map((p) => {
+    const valeur = tokensAcquired * p.price;
+    return {
+      date: p.date,
+      valeur,
+      investi: amount,
+      gains: Math.max(valeur - amount, 0),
+      prix: p.price,
+    };
+  });
 
   return {
     totalInvested: amount,
@@ -116,10 +120,12 @@ function calculateDCA(
       cumulativeInvested += amountPerPeriod;
       purchaseIndex++;
     }
+    const valeur = cumulativeTokens * p.price;
     return {
       date: p.date,
-      valeur: cumulativeTokens * p.price,
+      valeur,
       investi: cumulativeInvested,
+      gains: Math.max(valeur - cumulativeInvested, 0),
       prix: p.price,
     };
   });

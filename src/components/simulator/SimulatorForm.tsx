@@ -14,14 +14,33 @@ const FREQUENCY_OPTIONS = [
   { value: "daily", label: "Par jour" },
 ];
 
-const DEFAULT_END = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split("T")[0];
-const DEFAULT_START = new Date(Date.now() - 366 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 const DEFAULT_CRYPTO: CryptoAsset = { id: "BTCEUR", symbol: "BTC", name: "Bitcoin" };
+
+function getDefaultDates() {
+  const now = Date.now();
+  return {
+    end: new Date(now - 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    start: new Date(now - 366 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+  };
+}
 
 interface SimulatorFormProps {
   onChange: (values: SimulatorFormInput | null) => void;
   initialValues?: Partial<SimulatorFormInput> | null;
 }
+
+const labelStyle = { color: "#7899ce" };
+const inputStyle: React.CSSProperties = {
+  background: "transparent",
+  color: "#ffffff",
+  outline: "none",
+  width: "100%",
+  fontSize: "1.25rem",
+  fontWeight: "300",
+  paddingBottom: "0.5rem",
+  borderBottom: "1px solid rgba(120,153,206,0.3)",
+  paddingRight: "2.5rem",
+};
 
 function FieldRow({
   label,
@@ -33,19 +52,19 @@ function FieldRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="py-4 border-b" style={{ borderColor: "var(--color-border)" }}>
-      <p className="text-xs mb-2" style={{ color: "var(--color-text-secondary)" }}>
+    <div className="space-y-2">
+      <label className="font-light text-xs flex items-center gap-2" style={labelStyle}>
         {label}
-      </p>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex-1">{children}</div>
+      </label>
+      <div className="relative">
+        {children}
         {unit && (
-          <span
-            className="text-sm font-medium shrink-0"
-            style={{ color: "var(--color-text-muted)" }}
+          <div
+            className="absolute text-right right-0 top-1/2 -translate-y-1/2 text-sm font-light pointer-events-none"
+            style={{ color: "#7899ce" }}
           >
             {unit}
-          </span>
+          </div>
         )}
       </div>
     </div>
@@ -53,6 +72,8 @@ function FieldRow({
 }
 
 export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
+  const defaults = useMemo(() => getDefaultDates(), []);
+
   const initCrypto = initialValues?.cryptoId
     ? (TOP_CRYPTOS.find((c) => c.id === initialValues.cryptoId) ?? DEFAULT_CRYPTO)
     : DEFAULT_CRYPTO;
@@ -66,8 +87,8 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
   const [frequency, setFrequency] = useState<Frequency>(
     (initialValues?.frequency as Frequency) ?? "monthly"
   );
-  const [startDate, setStartDate] = useState(initialValues?.startDate ?? DEFAULT_START);
-  const [endDate, setEndDate] = useState(initialValues?.endDate ?? DEFAULT_END);
+  const [startDate, setStartDate] = useState(initialValues?.startDate ?? defaults.start);
+  const [endDate, setEndDate] = useState(initialValues?.endDate ?? defaults.end);
   const inputRef = useRef<HTMLInputElement>(null);
   const debouncedAmount = useDebounce(amount, 600);
   const cryptoResults = useMemo(() => searchCryptos(cryptoQuery), [cryptoQuery]);
@@ -85,91 +106,79 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
     onChange(parsed.success ? parsed.data : null);
   }, [selectedCrypto, debouncedAmount, frequency, startDate, endDate, onChange]);
 
-  const inputStyle = {
-    background: "transparent",
-    color: "var(--color-text-primary)",
-    outline: "none",
-    width: "100%",
-    fontSize: "1rem",
-    fontWeight: "600",
-  };
-
   return (
-    <div>
-      {/* Crypto */}
-      <div className="py-4 border-b relative" style={{ borderColor: "var(--color-border)" }}>
-        <p className="text-xs mb-2" style={{ color: "var(--color-text-secondary)" }}>
+    <div className="space-y-6 sm:space-y-10">
+      {/* Crypto selector */}
+      <div className="space-y-2">
+        <label className="font-light text-xs flex items-center gap-2" style={labelStyle}>
           Actif numérique
-        </p>
-        {!showDropdown ? (
-          <button
-            type="button"
-            onClick={() => {
-              setShowDropdown(true);
-              setTimeout(() => inputRef.current?.focus(), 50);
-            }}
-            className="w-full flex items-center justify-between"
-          >
-            <span
-              className="text-base font-semibold"
-              style={{ color: "var(--color-text-primary)" }}
-            >
-              {selectedCrypto.name}
-              <span
-                className="ml-2 text-sm font-normal"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                ({selectedCrypto.symbol})
-              </span>
-            </span>
-            <ChevronDown size={16} style={{ color: "var(--color-text-muted)" }} />
-          </button>
-        ) : (
-          <div className="relative">
-            <Search
-              size={14}
-              className="absolute left-0 top-1/2 -translate-y-1/2"
-              style={{ color: "var(--color-text-muted)" }}
-            />
-            <input
-              ref={inputRef}
-              type="text"
-              value={cryptoQuery}
-              onChange={(e) => {
-                setCryptoQuery(e.target.value);
+        </label>
+        <div className="relative">
+          {!showDropdown ? (
+            <button
+              type="button"
+              onClick={() => {
                 setShowDropdown(true);
+                setTimeout(() => inputRef.current?.focus(), 50);
               }}
-              onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-              placeholder="Rechercher..."
-              style={{ ...inputStyle, paddingLeft: "1.5rem" }}
-            />
-          </div>
-        )}
+              className="w-full flex items-center justify-between pb-2 border-b"
+              style={{ borderColor: "rgba(120,153,206,0.3)" }}
+            >
+              <span className="text-white text-xl font-light">
+                {selectedCrypto.name}{" "}
+                <span className="text-sm" style={{ color: "#7899ce" }}>
+                  ({selectedCrypto.symbol})
+                </span>
+              </span>
+              <ChevronDown size={16} style={{ color: "#7899ce" }} className="shrink-0" />
+            </button>
+          ) : (
+            <div className="relative">
+              <Search
+                size={14}
+                className="absolute left-0 top-1/2 -translate-y-1/2"
+                style={{ color: "#7899ce" }}
+              />
+              <input
+                ref={inputRef}
+                type="text"
+                value={cryptoQuery}
+                onChange={(e) => {
+                  setCryptoQuery(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+                placeholder="Rechercher..."
+                style={{ ...inputStyle, paddingLeft: "1.5rem" }}
+              />
+            </div>
+          )}
 
-        {showDropdown && (
-          <ul
-            className="absolute left-0 right-0 z-50 mt-2 rounded-xl border overflow-y-auto max-h-52 shadow-xl"
-            style={{ backgroundColor: "var(--color-bg-card)", borderColor: "var(--color-border)" }}
-          >
-            {cryptoResults.map((crypto) => (
-              <li key={crypto.id}>
-                <button
-                  type="button"
-                  onMouseDown={() => {
-                    setSelectedCrypto(crypto);
-                    setCryptoQuery("");
-                    setShowDropdown(false);
-                  }}
-                  className="w-full flex items-center justify-between px-4 py-3 text-sm hover:opacity-70 transition-opacity"
-                  style={{ color: "var(--color-text-primary)" }}
-                >
-                  <span>{crypto.name}</span>
-                  <span style={{ color: "var(--color-text-muted)" }}>{crypto.symbol}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+          {showDropdown && (
+            <ul
+              className="absolute left-0 right-0 z-50 mt-2 rounded-xl border overflow-y-auto max-h-52 shadow-xl"
+              style={{ backgroundColor: "#141b2d", borderColor: "rgba(255,255,255,0.1)" }}
+            >
+              {cryptoResults.map((crypto) => (
+                <li key={crypto.id}>
+                  <button
+                    type="button"
+                    onMouseDown={() => {
+                      setSelectedCrypto(crypto);
+                      setCryptoQuery("");
+                      setShowDropdown(false);
+                    }}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm hover:bg-white/5 transition-colors"
+                    style={{ color: "#ffffff" }}
+                  >
+                    <span>{crypto.name}</span>
+                    <span style={{ color: "#7899ce" }}>{crypto.symbol}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* Amount */}
@@ -190,14 +199,10 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
         <select
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as Frequency)}
-          style={{ ...inputStyle, cursor: "pointer" }}
+          style={{ ...inputStyle, cursor: "pointer", paddingRight: "0" }}
         >
           {FREQUENCY_OPTIONS.map((o) => (
-            <option
-              key={o.value}
-              value={o.value}
-              style={{ backgroundColor: "var(--color-bg-card)" }}
-            >
+            <option key={o.value} value={o.value} style={{ backgroundColor: "#141b2d" }}>
               {o.label}
             </option>
           ))}
@@ -221,7 +226,7 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
           type="date"
           value={endDate}
           min={startDate}
-          max={DEFAULT_END}
+          max={defaults.end}
           onChange={(e) => setEndDate(e.target.value)}
           style={inputStyle}
         />

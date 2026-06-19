@@ -33,5 +33,6 @@ export interface ChartDataPoint {
   date: string;
   valeur: number;
   investi: number;
+  gains: number;
   prix: number;
 }
