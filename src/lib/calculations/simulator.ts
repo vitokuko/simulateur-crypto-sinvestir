@@ -67,6 +67,7 @@ function calculateOneShot(
       investi: amount,
       gains: Math.max(valeur - amount, 0),
       prix: p.price,
+      acquis: tokensAcquired,
     };
   });
 
@@ -127,6 +128,7 @@ function calculateDCA(
       investi: cumulativeInvested,
       gains: Math.max(valeur - cumulativeInvested, 0),
       prix: p.price,
+      acquis: cumulativeTokens,
     };
   });
 

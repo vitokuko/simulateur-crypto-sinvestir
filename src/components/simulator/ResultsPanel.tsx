@@ -3,6 +3,7 @@
 import { Wallet, PiggyBank, Coins, CircleDollarSign, DollarSign, Percent } from "lucide-react";
 import type { SimulationResult } from "@/types/simulator";
 import type { Frequency } from "@/types/simulator";
+import { formatEur, formatTokens } from "@/lib/utils/formatters";
 
 interface ResultsPanelProps {
   result: SimulationResult | null;
@@ -13,17 +14,9 @@ interface ResultsPanelProps {
   error: string | null;
 }
 
-function formatEur(value: number): string {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatTokens(value: number): string {
+function formatTokensLocal(value: number): string {
   if (value < 0.0001) return value.toExponential(4);
-  return value.toFixed(8);
+  return formatTokens(value);
 }
 
 function frequencyLabel(freq: Frequency): string {
@@ -104,7 +97,7 @@ export function ResultsPanel({
       label: "Acquis",
       value: (
         <span className="tabular-nums break-all">
-          {formatTokens(result.tokensAcquired)}{" "}
+          {formatTokensLocal(result.tokensAcquired)}{" "}
           <span className="font-light" style={{ color: "#7899ce" }}>
             {symbol}
           </span>

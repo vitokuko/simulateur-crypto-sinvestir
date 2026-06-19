@@ -35,4 +35,5 @@ export interface ChartDataPoint {
   investi: number;
   gains: number;
   prix: number;
+  acquis: number;
 }
