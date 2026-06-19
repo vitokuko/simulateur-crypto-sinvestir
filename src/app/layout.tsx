@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Lexend } from "next/font/google";
+
+const lexend = Lexend({ subsets: ["latin"], variable: "--font-lexend" });
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Providers } from "./providers";
@@ -19,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className="h-full">
-      <body className={`${inter.className} min-h-screen`} style={{ background: "#0B0F1A" }}>
+      <body
+        className={`${inter.className} ${lexend.variable} min-h-screen`}
+        style={{ background: "#0B0F1A" }}
+      >
         <Providers>
           <Sidebar />
           {/* Background SVG glow */}
@@ -64,7 +69,7 @@ export default function RootLayout({
             </defs>
           </svg>
 
-          <div className="lg:pl-[300px]">
+          <div id="main-content">
             {/* Sticky header */}
             <header className="flex h-20 shrink-0 items-center border-b border-white/10 gap-x-6 pl-6 lg:pl-8 mr-6">
               {/* Mobile hamburger — handled inside Sidebar */}
@@ -76,6 +81,12 @@ export default function RootLayout({
                     alt="S'investir"
                     className="h-8 w-auto"
                   />
+                  <span
+                    className="text-white font-bold text-2xl tracking-widest uppercase"
+                    style={{ fontFamily: "var(--font-lexend)" }}
+                  >
+                    Simulateurs
+                  </span>
                 </div>
                 <div className="hidden sm:flex items-end gap-x-6 lg:gap-x-8 font-light">
                   <a

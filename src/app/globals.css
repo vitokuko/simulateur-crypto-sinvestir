@@ -45,6 +45,18 @@
   box-sizing: border-box;
 }
 
+@media (min-width: 1024px) {
+  #main-content {
+    margin-left: 300px;
+    width: auto;
+    min-width: 0;
+    transition: margin-left 0.3s;
+  }
+  .sidebar-collapsed #main-content {
+    margin-left: 100px;
+  }
+}
+
 button,
 [role="button"],
 a {

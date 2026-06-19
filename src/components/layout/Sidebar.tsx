@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/ui/Toast";
+import { useSidebar } from "@/components/layout/SidebarContext";
 
 /* ── SVG icons ─────────────────────────────────────────────────────────── */
 
@@ -250,29 +251,39 @@ const NAV_ITEMS = [
 
 /* ── NavContent ─────────────────────────────────────────────────────────── */
 
-function NavContent({ pathname, onClose }: { pathname: string; onClose?: () => void }) {
+function NavContent({
+  pathname,
+  collapsed,
+  onClose,
+}: {
+  pathname: string;
+  collapsed?: boolean;
+  onClose?: () => void;
+}) {
   const { showToast } = useToast();
 
   return (
     <div
-      className="py-6 px-0 flex grow flex-col gap-y-10 overflow-y-auto border border-white/10 rounded-2xl"
+      className="relative py-6 px-0 flex grow flex-col gap-y-10 overflow-y-auto overflow-x-hidden border border-white/10 rounded-2xl transition-all duration-300"
       style={{
         background:
           "radial-gradient(228.26% 65.64% at 100% 2.53%, rgba(255,255,255,0.1) 0%, rgba(16,27,68,0.1) 100%)",
       }}
     >
       {/* User card */}
-      <div className="flex items-center gap-3 px-6">
+      <div className={`flex items-center gap-3 ${collapsed ? "justify-center px-0" : "px-6"}`}>
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 border border-white/10 text-lg font-medium text-white shrink-0">
           SM
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-normal text-white truncate">souaibou mbouille ndiaye</p>
-          <p className="text-xs font-light truncate" style={{ color: "#7899ce" }}>
-            souaibouesp@gmail.com
-          </p>
-        </div>
-        {onClose && (
+        {!collapsed && (
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-normal text-white truncate">souaibou mbouille ndiaye</p>
+            <p className="text-xs font-light truncate" style={{ color: "#7899ce" }}>
+              souaibouesp@gmail.com
+            </p>
+          </div>
+        )}
+        {onClose && !collapsed && (
           <button onClick={onClose} className="ml-auto shrink-0 text-white/40">
             <svg
               width="18"
@@ -294,7 +305,7 @@ function NavContent({ pathname, onClose }: { pathname: string; onClose?: () => v
         <ul role="list" className="flex flex-1 flex-col justify-between gap-y-7">
           {/* Main nav */}
           <li>
-            <ul role="list" className="space-y-3">
+            <ul role="list" className="space-y-1">
               {NAV_ITEMS.map(({ href, label, icon }) => {
                 const isActive = pathname === href;
                 return (
@@ -302,15 +313,16 @@ function NavContent({ pathname, onClose }: { pathname: string; onClose?: () => v
                     <Link
                       href={href}
                       onClick={onClose}
-                      className="border-l-2 flex items-center gap-x-3 px-6 py-3 text-sm font-normal transition-all duration-300 whitespace-nowrap overflow-hidden"
+                      title={collapsed ? label : undefined}
+                      className={`border-l-2 flex items-center py-3 text-sm font-normal transition-all duration-300 whitespace-nowrap overflow-hidden ${collapsed ? "justify-center px-0 border-l-transparent" : "gap-x-3 px-6"}`}
                       style={{
                         color: isActive ? "#fff" : "rgba(255,255,255,0.3)",
-                        borderColor: isActive ? "#1098F7" : "transparent",
+                        borderColor: !collapsed && isActive ? "#1098F7" : "transparent",
                         backgroundColor: isActive ? "rgba(255,255,255,0.05)" : "transparent",
                       }}
                     >
                       {icon}
-                      <span className="truncate">{label}</span>
+                      {!collapsed && <span className="truncate">{label}</span>}
                     </Link>
                   </li>
                 );
@@ -323,31 +335,34 @@ function NavContent({ pathname, onClose }: { pathname: string; onClose?: () => v
             <div className="space-y-1">
               <button
                 onClick={() => showToast("Gérer mon compte — bientôt disponible")}
-                className="w-full flex items-center justify-center gap-x-2 px-6 py-3 text-sm font-light transition-all duration-300 hover:text-white"
+                title={collapsed ? "Gérer mon compte" : undefined}
+                className={`w-full flex items-center py-3 text-sm font-light transition-all duration-300 hover:text-white ${collapsed ? "justify-center px-0" : "justify-center gap-x-2 px-6"}`}
                 style={{ color: "rgba(255,255,255,0.7)" }}
               >
                 <IconSettings />
-                <span className="truncate">Gérer mon compte</span>
+                {!collapsed && <span className="truncate">Gérer mon compte</span>}
               </button>
 
               <button
                 onClick={() => showToast("Faire une suggestion — bientôt disponible")}
-                className="w-full flex items-center justify-center gap-x-2 px-6 py-3 text-sm font-light transition-all duration-300 hover:text-white"
+                title={collapsed ? "Faire une suggestion" : undefined}
+                className={`w-full flex items-center py-3 text-sm font-light transition-all duration-300 hover:text-white ${collapsed ? "justify-center px-0" : "justify-center gap-x-2 px-6"}`}
                 style={{ color: "rgba(255,255,255,0.7)" }}
               >
                 <IconLightbulb />
-                <span className="truncate">Faire une suggestion</span>
+                {!collapsed && <span className="truncate">Faire une suggestion</span>}
               </button>
 
-              <div className="px-6 pt-2">
+              <div className={`pt-2 ${collapsed ? "flex justify-center px-0" : "px-6"}`}>
                 <button
                   type="button"
                   onClick={() => showToast("Déconnexion — bientôt disponible")}
-                  className="inline-flex items-center justify-center gap-2 rounded-full font-light transition-all duration-300 px-6 py-3 text-sm text-white w-full"
+                  title={collapsed ? "Déconnexion" : undefined}
+                  className={`inline-flex items-center justify-center gap-2 font-light transition-all duration-300 text-sm text-white ${collapsed ? "w-12 h-12 rounded-full p-0" : "rounded-full px-6 py-3 w-full"}`}
                   style={{ background: "linear-gradient(to right, #0049C6, #04265F)" }}
                 >
                   <IconLogout />
-                  <span className="truncate">Déconnexion</span>
+                  {!collapsed && <span className="truncate">Déconnexion</span>}
                 </button>
               </div>
             </div>
@@ -363,15 +378,36 @@ function NavContent({ pathname, onClose }: { pathname: string; onClose?: () => v
 export function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { collapsed, setCollapsed } = useSidebar();
 
   return (
     <>
       {/* Desktop */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col p-6 transition-all duration-300 lg:w-[300px]">
-        <button className="absolute top-1/2 -translate-y-1/2 -right-0 w-6 h-16 flex items-center justify-center bg-white/5 rounded-r-2xl hover:bg-white/10 transition-all duration-[400ms]">
-          <IconChevron />
+      <div
+        className={`hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col transition-all duration-300 ${collapsed ? "lg:w-[100px] pt-3 pb-3 pl-3 pr-0" : "lg:w-[300px] pt-6 pb-6 pl-6 pr-0"}`}
+      >
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-full w-6 h-16 flex items-center justify-center bg-white/5 rounded-r-2xl hover:bg-white/10 transition-colors duration-200 z-10"
+        >
+          <svg
+            width="24"
+            height="25"
+            viewBox="0 0 24 25"
+            fill="none"
+            className="h-5 w-5 transition-transform duration-300"
+            style={{ transform: collapsed ? "rotate(180deg)" : "rotate(0deg)" }}
+          >
+            <path
+              d="M15 6.51s-6 4.42-6 6c0 1.58 6 6 6 6"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
-        <NavContent pathname={pathname} />
+        <NavContent pathname={pathname} collapsed={collapsed} />
       </div>
 
       {/* Mobile top bar */}
@@ -385,6 +421,12 @@ export function Sidebar() {
           alt="S'investir"
           className="h-7 w-auto"
         />
+        <span
+          className="text-white font-bold text-lg tracking-widest uppercase"
+          style={{ fontFamily: "var(--font-lexend)" }}
+        >
+          Simulateurs
+        </span>
         <button
           onClick={() => setMobileOpen(true)}
           className="text-white/60"
