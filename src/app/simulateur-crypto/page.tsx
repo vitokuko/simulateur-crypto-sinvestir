@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useRef, Suspense } from "react";
 import { toPng } from "html-to-image";
 import { Info, BarChart2, Calendar } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { HelpModal } from "@/components/ui/HelpModal";
 import { SimulatorForm } from "@/components/simulator/SimulatorForm";
 import { ResultsPanel } from "@/components/simulator/ResultsPanel";
 import { PriceChart } from "@/components/simulator/PriceChart";
@@ -11,20 +12,14 @@ import { useHistoricalPrices } from "@/hooks/useHistoricalPrices";
 import { useUrlSync } from "@/hooks/useUrlSync";
 import { calculateSimulation } from "@/lib/calculations/simulator";
 import type { SimulatorFormInput } from "@/lib/validators/simulator";
+import { formatEur } from "@/lib/utils/formatters";
+import { COPY_RESET_DELAY } from "@/lib/constants";
 
 const API_ERRORS: Record<string, string> = {
   NOT_FOUND: "Aucune donnée disponible pour cette cryptomonnaie.",
   NO_DATA: "Aucune donnée disponible pour cette période. Essayez une date de début ultérieure.",
   API_ERROR: "Une erreur est survenue lors de la récupération des données. Réessayez.",
 };
-
-function formatEur(value: number): string {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 2,
-  }).format(value);
-}
 
 function SimulateurCryptoContent() {
   const { pushToUrl, readFromUrl } = useUrlSync();
@@ -33,6 +28,7 @@ function SimulateurCryptoContent() {
   const [formValues, setFormValues] = useState<SimulatorFormInput | null>(null);
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<"chart" | "calendar">("chart");
+  const [helpOpen, setHelpOpen] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const handleChange = useCallback(
@@ -73,7 +69,7 @@ function SimulateurCryptoContent() {
     await navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     showToast("Lien copié dans le presse-papiers !");
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), COPY_RESET_DELAY);
   }
 
   async function handleExport() {
@@ -90,6 +86,23 @@ function SimulateurCryptoContent() {
   }
 
   return (
+    <>
+    <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
+
+    {/* Bouton aide flottant */}
+    <button
+      onClick={() => setHelpOpen(true)}
+      className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110"
+      style={{
+        backgroundColor: "#1098F7",
+        boxShadow: "0 4px 20px rgba(16,152,247,0.4)",
+      }}
+      title="Guide d'utilisation"
+      aria-label="Ouvrir le guide d'utilisation"
+    >
+      <span className="text-white font-semibold text-base leading-none">?</span>
+    </button>
+
     <div className="space-y-16" ref={resultsRef}>
       {/* Title block */}
       <div className="w-full px-2 text-center space-y-3 sm:space-y-4 mt-10">
@@ -274,21 +287,8 @@ function SimulateurCryptoContent() {
         </div>
       )}
 
-      {/* Footer */}
-      <div className="space-y-10">
-        <hr style={{ borderColor: "rgba(120,153,206,0.2)" }} />
-        <p
-          className="text-xs font-light text-center text-balance"
-          style={{ color: "rgba(120,153,206,0.6)" }}
-        >
-          Les simulateurs proposés sont mis à disposition gratuitement, à des fins exclusivement
-          pédagogiques et informatives. Ils ne constituent en aucun cas un conseil en
-          investissement, en fiscalité ou une recommandation personnalisée. Investir comporte des
-          risques, y compris de perte en capital. Les performances passées ne préjugent en rien des
-          performances futures.
-        </p>
-      </div>
     </div>
+    </>
   );
 }
 
