@@ -214,12 +214,16 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
         <input
           type="date"
           value={startDate}
+          min="2020-01-03"
           max={endDate}
           onChange={(e) => setStartDate(e.target.value)}
           className="date-input"
           style={inputStyle}
         />
       </FieldRow>
+      <p className="text-xs font-light -mt-6" style={{ color: "rgba(120,153,206,0.6)" }}>
+        Données disponibles depuis le 03/01/2020 (paires EUR via Binance).
+      </p>
 
       {/* End date */}
       <FieldRow label="Date de fin">

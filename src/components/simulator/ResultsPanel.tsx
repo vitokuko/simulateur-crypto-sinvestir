@@ -1,11 +1,14 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import { Wallet, PiggyBank, Coins, CircleDollarSign, DollarSign, Percent } from "lucide-react";
 import type { SimulationResult } from "@/types/simulator";
+import type { Frequency } from "@/types/simulator";
 
 interface ResultsPanelProps {
   result: SimulationResult | null;
   symbol: string;
+  frequency?: Frequency;
+  amount?: number;
   isLoading: boolean;
   error: string | null;
 }
@@ -20,10 +23,30 @@ function formatEur(value: number): string {
 
 function formatTokens(value: number): string {
   if (value < 0.0001) return value.toExponential(4);
-  return value.toFixed(6);
+  return value.toFixed(8);
 }
 
-export function ResultsPanel({ result, symbol, isLoading, error }: ResultsPanelProps) {
+function frequencyLabel(freq: Frequency): string {
+  switch (freq) {
+    case "one-shot":
+      return "en 1 fois";
+    case "daily":
+      return "/ jour";
+    case "weekly":
+      return "/ semaine";
+    case "monthly":
+      return "/ mois";
+  }
+}
+
+export function ResultsPanel({
+  result,
+  symbol,
+  frequency,
+  amount,
+  isLoading,
+  error,
+}: ResultsPanelProps) {
   const isPositive = result ? result.gainLoss >= 0 : null;
 
   if (isLoading) {
@@ -59,113 +82,102 @@ export function ResultsPanel({ result, symbol, isLoading, error }: ResultsPanelP
     );
   }
 
-  const gainPct =
-    result.finalValue > 0 ? Math.max((result.gainLoss / result.finalValue) * 100, 0) : 0;
-  const investedPct = Math.min(100 - gainPct, 100);
+  const performanceColor = isPositive ? "#22c55e" : "#ef4444";
+
+  const rows = [
+    {
+      icon: <PiggyBank size={28} strokeWidth={1.5} style={{ color: "#7899ce" }} />,
+      label: "Investi",
+      value: (
+        <span className="tabular-nums break-all">
+          {formatEur(amount ?? result.totalInvested)}{" "}
+          {frequency && (
+            <span className="font-light" style={{ color: "#7899ce" }}>
+              {frequencyLabel(frequency)}
+            </span>
+          )}
+        </span>
+      ),
+    },
+    {
+      icon: <Coins size={28} strokeWidth={1.5} style={{ color: "#7899ce" }} />,
+      label: "Acquis",
+      value: (
+        <span className="tabular-nums break-all">
+          {formatTokens(result.tokensAcquired)}{" "}
+          <span className="font-light" style={{ color: "#7899ce" }}>
+            {symbol}
+          </span>
+        </span>
+      ),
+    },
+    {
+      icon: <CircleDollarSign size={28} strokeWidth={1.5} style={{ color: "#7899ce" }} />,
+      label: "Prix moyen d'acquisition",
+      value: <span className="tabular-nums break-all">{formatEur(result.averageBuyPrice)}</span>,
+    },
+    {
+      icon: <DollarSign size={28} strokeWidth={1.5} style={{ color: "#7899ce" }} />,
+      label: "Capital final",
+      value: <span className="tabular-nums break-all">{formatEur(result.finalValue)}</span>,
+    },
+    {
+      icon: <Percent size={28} strokeWidth={1.5} style={{ color: "#7899ce" }} />,
+      label: "Performance",
+      value: (
+        <span className="tabular-nums break-all" style={{ color: performanceColor }}>
+          {isPositive ? "+" : ""}
+          {result.gainLossPercent.toFixed(2)} %
+        </span>
+      ),
+    },
+  ];
 
   return (
-    <div className="flex flex-col gap-y-6">
+    <div className="flex flex-col">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row gap-6 lg:items-center items-start lg:justify-between">
-        <h3
-          className="text-2xl font-normal text-white py-0.5 px-4 border-l-2"
-          style={{ borderColor: "#1098F7" }}
-        >
-          Vos résultats
-        </h3>
+      <div
+        className="flex items-center gap-3 px-5 py-4 rounded-t-2xl"
+        style={{ backgroundColor: "#1098F7" }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+            stroke="#fff"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        <h3 className="text-white font-normal text-base">Chiffres clés</h3>
       </div>
 
-      {/* KPI grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {/* Capital final — col-span-2 */}
-        <div
-          className="col-span-2 bg-white/5 rounded-2xl p-6 border border-white/10 flex flex-col justify-between gap-y-3"
-          style={{ minHeight: 160 }}
-        >
-          <p className="text-white font-normal text-sm">Capital final</p>
-          <p className="flex items-baseline gap-2">
-            <span className="text-white font-normal text-3xl tabular-nums">
-              {new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(
-                result.finalValue
-              )}
-            </span>
-            <span className="text-white font-normal text-sm">EUR</span>
-          </p>
-          <p className="grid grid-cols-2 gap-2">
-            <span
-              className="flex flex-col xl:flex-row items-start xl:items-center gap-1 sm:gap-2"
-              style={{ color: "#1098F7" }}
-            >
-              <span className="text-xs font-light">Somme investie</span>
-              <strong className="text-sm font-bold">{formatEur(result.totalInvested)}</strong>
-            </span>
-            <span
-              className="flex flex-col xl:flex-row items-end xl:items-center gap-1 sm:gap-2"
-              style={{ color: isPositive ? "#eab308" : "#ef4444" }}
-            >
-              <span className="text-xs font-light">
-                {isPositive ? "Intérêts gagnés" : "Moins-value"}
-              </span>
-              <strong className="text-sm font-bold">{formatEur(result.gainLoss)}</strong>
-            </span>
-          </p>
-          {/* Progress bar: yellow bg, blue for invested portion */}
+      {/* Rows */}
+      <div
+        className="rounded-b-2xl divide-y"
+        style={{
+          backgroundColor: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderTop: "none",
+        }}
+      >
+        {rows.map((row, i) => (
           <div
-            className="w-full h-[30px] rounded-full overflow-hidden relative"
-            style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+            key={i}
+            className="flex items-center justify-between gap-4 px-5 py-5"
+            style={{
+              borderBottom: i < rows.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+            }}
           >
-            <div
-              className="absolute inset-0 rounded-full"
-              style={{ backgroundColor: isPositive ? "#eab308" : "#ef4444" }}
-            />
-            <div
-              className="absolute left-0 top-0 h-full rounded-r-full transition-all duration-700"
-              style={{ width: `${investedPct}%`, backgroundColor: "#1098F7" }}
-            />
+            <div className="shrink-0">{row.icon}</div>
+            <div className="flex flex-col items-end text-right min-w-0">
+              <span className="text-sm font-light mb-0.5" style={{ color: "#7899ce" }}>
+                {row.label}
+              </span>
+              <span className="text-white font-bold text-lg leading-tight">{row.value}</span>
+            </div>
           </div>
-        </div>
-
-        {/* Part des intérêts gagnés — col-span-1 */}
-        <div className="col-span-1 bg-white/5 rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
-          <p className="text-white font-normal text-sm">
-            {isPositive ? "Part des intérêts gagnés" : "Perte"}
-          </p>
-          <p className="text-white font-normal text-3xl xl:text-[2.60rem] mt-4 tabular-nums">
-            {gainPct.toFixed(2)} <span className="text-white font-normal text-sm">%</span>
-          </p>
-        </div>
-
-        {/* Part du capital investi — col-span-1 */}
-        <div className="col-span-1 bg-white/5 rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
-          <p className="text-white font-normal text-sm">Part du capital investi</p>
-          <p className="text-white font-normal text-3xl xl:text-[2.60rem] mt-4 tabular-nums">
-            {investedPct.toFixed(2)} <span className="text-white font-normal text-sm">%</span>
-          </p>
-        </div>
-
-        {/* Tokens acquis — col-span-1 */}
-        <div className="col-span-1 bg-white/5 rounded-2xl p-6 border border-white/10 flex flex-col justify-between">
-          <p className="text-white font-normal text-sm">Tokens acquis ({symbol})</p>
-          <p className="text-white font-normal text-2xl mt-4 tabular-nums">
-            {formatTokens(result.tokensAcquired)}
-          </p>
-        </div>
-
-        {/* Summary text — col-span-2 */}
-        <div className="col-span-2 bg-white/5 rounded-2xl p-6 border border-white/10 flex flex-col items-center justify-center text-center">
-          <p className="text-white font-light text-base text-balance max-w-sm mx-auto">
-            Votre investissement de{" "}
-            <strong className="font-bold">{formatEur(result.totalInvested)}</strong> en{" "}
-            <strong className="font-bold">{symbol}</strong> à un prix moyen d&apos;achat de{" "}
-            <strong className="font-bold">{formatEur(result.averageBuyPrice)}</strong> vaut
-            désormais <strong className="font-bold">{formatEur(result.finalValue)}</strong>, soit{" "}
-            <strong className="font-bold" style={{ color: isPositive ? "#eab308" : "#ef4444" }}>
-              {isPositive ? "+" : ""}
-              {result.gainLossPercent.toFixed(2)} %
-            </strong>
-            .
-          </p>
-        </div>
+        ))}
       </div>
     </div>
   );

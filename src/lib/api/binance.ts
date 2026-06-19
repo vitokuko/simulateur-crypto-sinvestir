@@ -43,6 +43,22 @@ export function getAllCryptos(): CryptoAsset[] {
   return TOP_CRYPTOS;
 }
 
+async function fetchKlines(
+  symbol: string,
+  interval: string,
+  startTime: number,
+  endTime: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any[][]> {
+  const url = `${BINANCE_BASE}/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=1000`;
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  if (!res.ok) {
+    if (res.status === 400) throw new Error("NOT_FOUND");
+    throw new Error("API_ERROR");
+  }
+  return res.json();
+}
+
 export async function fetchHistoricalPrices(
   symbol: string,
   startDate: string,
@@ -52,26 +68,33 @@ export async function fetchHistoricalPrices(
   const endTime = new Date(endDate).getTime();
   const diffDays = (endTime - startTime) / (1000 * 60 * 60 * 24);
 
-  // Use daily candles for periods > 7 days, hourly for shorter
   const interval = diffDays > 7 ? "1d" : "1h";
-  const limit = Math.min(Math.ceil(diffDays) + 2, 1000);
+  const intervalMs = interval === "1d" ? 86_400_000 : 3_600_000;
 
-  const url = `${BINANCE_BASE}/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`;
+  // Paginate: Binance caps at 1000 candles per request
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allCandles: any[][] = [];
+  let cursor = startTime;
 
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
-
-  if (!res.ok) {
-    if (res.status === 400) throw new Error("NOT_FOUND");
-    throw new Error("API_ERROR");
+  while (cursor < endTime) {
+    const batch = await fetchKlines(symbol, interval, cursor, endTime);
+    if (!batch || batch.length === 0) break;
+    allCandles.push(...batch);
+    const lastOpenTime = batch[batch.length - 1][0] as number;
+    cursor = lastOpenTime + intervalMs;
+    if (batch.length < 1000) break;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any[][] = await res.json();
+  if (allCandles.length === 0) throw new Error("NO_DATA");
 
-  if (!data || data.length === 0) throw new Error("NO_DATA");
+  // Deduplicate by date (keep last close per day)
+  const byDate = new Map<string, number>();
+  for (const candle of allCandles) {
+    const date = new Date(candle[0]).toISOString().split("T")[0];
+    byDate.set(date, parseFloat(candle[4])); // close price
+  }
 
-  return data.map((candle) => ({
-    date: new Date(candle[0]).toISOString().split("T")[0],
-    price: parseFloat(candle[4]), // close price
-  }));
+  return Array.from(byDate.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, price]) => ({ date, price }));
 }

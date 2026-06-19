@@ -185,6 +185,8 @@ function SimulateurCryptoContent() {
           <ResultsPanel
             result={result}
             symbol={formValues?.cryptoSymbol ?? ""}
+            frequency={formValues?.frequency}
+            amount={formValues?.amount}
             isLoading={isLoading}
             error={errorMessage}
           />
