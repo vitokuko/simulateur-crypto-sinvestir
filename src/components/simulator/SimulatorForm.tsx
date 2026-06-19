@@ -216,6 +216,7 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
           value={startDate}
           max={endDate}
           onChange={(e) => setStartDate(e.target.value)}
+          className="date-input"
           style={inputStyle}
         />
       </FieldRow>
@@ -228,6 +229,7 @@ export function SimulatorForm({ onChange, initialValues }: SimulatorFormProps) {
           min={startDate}
           max={defaults.end}
           onChange={(e) => setEndDate(e.target.value)}
+          className="date-input"
           style={inputStyle}
         />
       </FieldRow>

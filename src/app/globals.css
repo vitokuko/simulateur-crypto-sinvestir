@@ -72,3 +72,27 @@ body {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
 }
+
+/* Date input: force native widget to match the dark design */
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.6) sepia(1) saturate(0.5) hue-rotate(180deg);
+  opacity: 0.6;
+  cursor: pointer;
+}
+.date-input::-webkit-datetime-edit {
+  color: #ffffff;
+  font-weight: 300;
+}
+.date-input::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+.date-input::-webkit-datetime-edit-text {
+  color: rgba(120, 153, 206, 0.6);
+  padding: 0 1px;
+}
+.date-input::-webkit-datetime-edit-year-field,
+.date-input::-webkit-datetime-edit-month-field,
+.date-input::-webkit-datetime-edit-day-field {
+  color: #ffffff;
+  background: transparent;
+}
