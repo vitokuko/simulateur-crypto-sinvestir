@@ -27,35 +27,93 @@ Aucune variable d'environnement requise. Les données historiques proviennent de
 - **Simulateur DCA** : investissement unique ou récurrent (mensuel, hebdomadaire, quotidien)
 - **+7 000 cryptos** : recherche par nom avec suggestions instantanées
 - **KPI cards** : capital final, plus-value (€ et %), tokens acquis, prix moyen d'achat, somme investie
-- **2 graphiques** : Historique (valeur / investi / prix du token) et Gains/Pertes (zone verte/rouge dynamique)
+- **2 graphiques interactifs** : Historique (valeur / investi / prix / tokens acquis sur double axe) et Gains/Pertes (zone verte/rouge dynamique)
+- **Légendes filtrables** : clic sur chaque série pour l'afficher ou la masquer
+- **Barre de zoom** : range slider custom avec sparkline pour zoomer sur une sous-période
+- **Partage enrichi** : modal de partage avec preview des résultats + Twitter/X, LinkedIn, WhatsApp, copie du lien
 - **Partage par URL** : tous les paramètres encodés dans l'URL, simulation restaurée automatiquement
-- **Export PNG** : capture des résultats via `html-to-image`
+- **Modal d'aide** : guide contextuel accessible via le bouton flottant `?`
+- **Composant embarquable** : `<CryptoSimulator />` autonome, configurable par props, sans store global
 - **Design S'investir** : dark theme, sidebar fixe, typographie, couleurs fidèles au site de référence
+
+## Composant embarquable — `<CryptoSimulator />`
+
+Le simulateur est conçu pour être **intégré dans n'importe quelle page ou application React** avec un minimum de dépendances. Toute la logique (fetch, calcul, état) est encapsulée dans un seul composant.
+
+```tsx
+import { CryptoSimulator } from "@/components/simulator/CryptoSimulator";
+
+// Usage minimal — l'utilisateur configure tout lui-même
+<CryptoSimulator />
+
+// Pré-configuré — idéal pour un article de blog ou une landing page dédiée
+<CryptoSimulator
+  defaultCrypto="BTC"
+  defaultAmount={100}
+  defaultFrequency="monthly"
+/>
+
+// Embarqué sans polluer l'URL (iframe, widget, page tierce)
+<CryptoSimulator syncUrl={false} />
+
+// Avec callback — pour connecter les résultats à un outil externe (CRM, analytics…)
+<CryptoSimulator
+  onResult={({ finalValue, gainLoss, gainLossPercent }) => {
+    analytics.track("simulation_completed", { finalValue, gainLossPercent });
+  }}
+/>
+```
+
+### Props
+
+| Prop | Type | Défaut | Description |
+|---|---|---|---|
+| `defaultCrypto` | `string` | — | Symbole crypto pré-sélectionné (`"BTC"`, `"ETH"`…) |
+| `defaultAmount` | `number` | `100` | Montant d'investissement initial en € |
+| `defaultFrequency` | `Frequency` | `"monthly"` | Fréquence : `"one-shot"`, `"daily"`, `"weekly"`, `"monthly"` |
+| `syncUrl` | `boolean` | `true` | Synchronise l'état avec les query params URL (désactiver pour les iframes) |
+| `onResult` | `function` | — | Callback appelé à chaque mise à jour des résultats |
+
+### Pourquoi ce design ?
+
+- **Aucun store global** — pas de Redux, pas de Zustand. L'état est local au composant.
+- **Aucun context requis** — seul `ToastProvider` (déjà dans le layout) est nécessaire.
+- **Données par props** — les valeurs par défaut et le comportement sont configurables sans modifier le composant.
+- **Isomorphe** — `syncUrl={false}` permet l'intégration dans des contextes sans router (iframe, micro-frontend, application tierce).
 
 ## Architecture
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx                  # Sidebar + ToastProvider (layout stable entre navigations)
-│   ├── simulateur-crypto/page.tsx  # Page principale
-│   └── [autres routes]/            # Pages "en cours de développement"
+│   ├── layout.tsx                      # Sidebar + ToastProvider + footer (layout stable)
+│   ├── page.tsx                        # Dashboard
+│   ├── simulateur-crypto/page.tsx      # Hero textuel + <CryptoSimulator syncUrl />
+│   ├── simulateurs/page.tsx            # Catalogue des simulateurs
+│   └── [autres routes]/               # Pages "en cours de développement"
 ├── components/
-│   ├── layout/Sidebar.tsx          # Navigation fixe desktop + mobile collapsible
+│   ├── layout/Sidebar.tsx              # Navigation fixe desktop + mobile collapsible
 │   ├── simulator/
-│   │   ├── SimulatorForm.tsx       # Formulaire avec validation Zod
-│   │   ├── ResultsPanel.tsx        # Chiffres clés (liste avec icônes)
-│   │   └── PriceChart.tsx          # Recharts (Historique + Gains/Pertes)
+│   │   ├── CryptoSimulator.tsx         # ★ Composant embarquable (voir section ci-dessus)
+│   │   ├── SimulatorForm.tsx           # Formulaire avec validation Zod
+│   │   ├── ResultsPanel.tsx            # Chiffres clés (liste avec icônes)
+│   │   ├── PriceChart.tsx              # Recharts (Historique + Gains/Pertes + légendes filtrables)
+│   │   ├── ChartTooltips.tsx           # Tooltips custom extraits de PriceChart
+│   │   └── RangeSlider.tsx             # Barre de zoom custom avec sparkline SVG
 │   └── ui/
-│       ├── Toast.tsx               # Système de notifications (Context)
-│       └── ComingSoon.tsx          # Page placeholder routes non implémentées
+│       ├── Toast.tsx                   # Notifications top-right avec barre de progression
+│       ├── HelpModal.tsx               # Modal guide d'utilisation
+│       ├── ShareModal.tsx              # Modal partage (réseaux sociaux + copie lien)
+│       └── ComingSoon.tsx              # Placeholder routes non implémentées
 ├── lib/
-│   ├── api/binance.ts              # Appels Binance + liste statique top cryptos
-│   ├── calculations/simulator.ts   # Logique DCA pure (sans effet de bord)
-│   └── validators/simulator.ts     # Schéma Zod des inputs
+│   ├── api/binance.ts                  # Appels Binance + liste statique top cryptos
+│   ├── calculations/simulator.ts       # Logique DCA pure (sans effet de bord)
+│   ├── constants/index.ts              # Constantes centralisées (couleurs, délais, périodes)
+│   ├── utils/formatters.ts             # Fonctions de formatage partagées (€, tokens, dates)
+│   └── validators/simulator.ts         # Schéma Zod des inputs
 └── hooks/
-    ├── useHistoricalPrices.ts      # TanStack Query v5 (cache + loading states)
-    └── useUrlSync.ts               # Sérialisation/lecture des params URL
+    ├── useHistoricalPrices.ts          # TanStack Query v5 (cache + loading states)
+    └── useUrlSync.ts                   # Sérialisation/lecture des params URL
 ```
 
 ## Partis pris techniques
@@ -101,5 +159,4 @@ src/
 | Recharts           | 3               | Graphiques      |
 | Zod                | 4               | Validation      |
 | TanStack Query     | 5               | Cache API       |
-| html-to-image      | 1.11            | Export PNG      |
 | Husky + commitlint | —               | Qualité commits |

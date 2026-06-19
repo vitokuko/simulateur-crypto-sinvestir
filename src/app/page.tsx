@@ -17,7 +17,7 @@ function ArrowIcon() {
 
 const CARDS = [
   {
-    href: "/simulateur-crypto",
+    href: "/simulateurs",
     title: "Tous les simulateurs",
     description:
       'Retrouvez tous les simulateurs dans la rubrique "Les simulateurs". Créez, simulez, investissez !',
