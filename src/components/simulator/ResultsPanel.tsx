@@ -11,6 +11,7 @@ interface ResultsPanelProps {
   frequency?: Frequency;
   amount?: number;
   isLoading: boolean;
+  isFetching?: boolean;
   error: string | null;
 }
 
@@ -28,8 +29,9 @@ function frequencyLabel(freq: Frequency): string {
   }
 }
 
-export function ResultsPanel({ result, symbol, frequency, amount, isLoading, error }: ResultsPanelProps) {
-  if (isLoading) {
+export function ResultsPanel({ result, symbol, frequency, amount, isLoading, isFetching, error }: ResultsPanelProps) {
+  // First load with no data yet — show spinner
+  if (isLoading && !result) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <div className="w-8 h-8 border-2 border-white/20 border-t-blue-500 rounded-full animate-spin" />
@@ -64,7 +66,19 @@ export function ResultsPanel({ result, symbol, frequency, amount, isLoading, err
   const investedAmt = amount ?? result.totalInvested;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 relative">
+      {/* Subtle refetch indicator — top border pulse, no content replacement */}
+      {isFetching && (
+        <div
+          className="absolute inset-x-0 top-0 h-0.5 rounded-full overflow-hidden"
+          style={{ zIndex: 10 }}
+        >
+          <div
+            className="h-full w-1/3 rounded-full animate-pulse"
+            style={{ backgroundColor: "#1098F7", animation: "slide-x 1.2s ease-in-out infinite" }}
+          />
+        </div>
+      )}
 
       {/* Ligne 1 : Capital final (large) + Part des gains (narrow) */}
       <div className="grid gap-3" style={{ gridTemplateColumns: "1fr auto" }}>

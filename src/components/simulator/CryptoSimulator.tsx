@@ -64,7 +64,7 @@ export function CryptoSimulator({
     [syncUrl, pushToUrl]
   );
 
-  const { data: prices, isLoading, error } = useHistoricalPrices(
+  const { data: prices, isLoading, isFetching, error } = useHistoricalPrices(
     formValues?.cryptoId ?? "",
     formValues?.startDate ?? "",
     formValues?.endDate ?? "",
@@ -154,6 +154,7 @@ export function CryptoSimulator({
               frequency={formValues?.frequency}
               amount={formValues?.amount}
               isLoading={isLoading}
+              isFetching={isFetching}
               error={errorMessage}
             />
           </div>
