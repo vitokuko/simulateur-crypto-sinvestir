@@ -88,7 +88,7 @@ export function CryptoSimulator({
   }, [prices, formValues, onResult]);
 
   const errorMessage = error
-    ? (API_ERRORS[(error as Error).message] ?? API_ERRORS.API_ERROR)
+    ? (API_ERRORS[error.message] ?? API_ERRORS.API_ERROR)
     : null;
 
   return (
@@ -210,7 +210,7 @@ export function CryptoSimulator({
                     </div>
                   ))}
                 </div>
-                <PriceChart data={result.chartData} symbol={formValues?.cryptoSymbol ?? ""} />
+                <PriceChart data={result.chartData} />
               </div>
             )}
 

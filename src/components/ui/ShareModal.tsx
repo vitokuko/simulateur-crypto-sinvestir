@@ -245,10 +245,10 @@ export function ShareModal({ open, onClose, result, symbol, frequency, startDate
                     color: btn.color === "#000" ? "#fff" : btn.color,
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.08)";
+                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(255,255,255,0.04)";
+                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)";
                   }}
                 >
                   {btn.icon}

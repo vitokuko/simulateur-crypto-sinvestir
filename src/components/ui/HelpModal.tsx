@@ -8,7 +8,17 @@ interface HelpModalProps {
   onClose: () => void;
 }
 
-const SECTIONS = [
+type Step = { num: string; text: string };
+type Chart = { name: string; color: string; desc: string };
+type Kpi = { label: string; desc: string };
+
+type Section =
+  | { icon: React.ElementType; color: string; title: string; content: string; warning?: boolean }
+  | { icon: React.ElementType; color: string; title: string; steps: Step[] }
+  | { icon: React.ElementType; color: string; title: string; charts: Chart[] }
+  | { icon: React.ElementType; color: string; title: string; kpis: Kpi[] };
+
+const SECTIONS: Section[] = [
   {
     icon: TrendingUp,
     color: "#1098F7",
@@ -163,7 +173,7 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
 
                 {"steps" in section && (
                   <ol className="space-y-2">
-                    {(section as { steps: { num: string; text: string }[] }).steps.map((s) => (
+                    {section.steps.map((s) => (
                       <li key={s.num} className="flex items-start gap-3">
                         <span
                           className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium shrink-0 mt-0.5"
@@ -181,7 +191,7 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
 
                 {"charts" in section && (
                   <div className="space-y-3">
-                    {(section as { charts: { name: string; color: string; desc: string }[] }).charts.map((c) => (
+                    {section.charts.map((c) => (
                       <div key={c.name} className="flex items-start gap-3">
                         <div
                           className="w-2 h-2 rounded-full mt-1.5 shrink-0"
@@ -198,7 +208,7 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
 
                 {"kpis" in section && (
                   <dl className="space-y-2">
-                    {(section as { kpis: { label: string; desc: string }[] }).kpis.map((k) => (
+                    {section.kpis.map((k) => (
                       <div key={k.label} className="flex items-baseline gap-2">
                         <dt
                           className="text-xs font-medium shrink-0"

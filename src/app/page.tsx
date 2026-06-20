@@ -73,7 +73,7 @@ export default function Home() {
       {/* Greeting */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-normal text-white">Bonjour souaibou !</h1>
+          <h1 className="text-3xl font-normal text-white">Bonjour !</h1>
           <p className="text-sm font-light mt-1" style={{ color: "#7899ce" }}>
             Nous sommes ravis de vous revoir aujourd&apos;hui
           </p>

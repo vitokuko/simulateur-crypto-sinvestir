@@ -30,10 +30,3 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function SidebarSpacer({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="sidebar-spacer flex flex-col flex-1 min-w-0 transition-all duration-300">
-      {children}
-    </div>
-  );
-}

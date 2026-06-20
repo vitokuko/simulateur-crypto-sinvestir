@@ -3,6 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import type { SimulatorFormInput } from "@/lib/validators/simulator";
+import type { Frequency } from "@/types/simulator";
+
+const VALID_FREQUENCIES: Frequency[] = ["one-shot", "daily", "weekly", "monthly"];
 
 export function useUrlSync() {
   const router = useRouter();
@@ -35,12 +38,17 @@ export function useUrlSync() {
 
     if (!crypto || !amount || !freq || !from || !to) return null;
 
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount)) return null;
+
+    if (!VALID_FREQUENCIES.includes(freq as Frequency)) return null;
+
     return {
       cryptoId: crypto,
       cryptoSymbol: symbol ?? crypto,
       cryptoName: name ?? crypto,
-      amount: parseFloat(amount),
-      frequency: freq as SimulatorFormInput["frequency"],
+      amount: parsedAmount,
+      frequency: freq as Frequency,
       startDate: from,
       endDate: to,
     };

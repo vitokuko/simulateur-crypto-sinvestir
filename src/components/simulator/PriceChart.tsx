@@ -18,7 +18,6 @@ import { RangeSlider } from "./RangeSlider";
 
 interface PriceChartProps {
   data: ChartDataPoint[];
-  symbol: string;
 }
 
 type TabType = "historique" | "gains";
@@ -42,7 +41,7 @@ const LEGEND_GAINS = [
   { key: "gains", label: "Gains / Pertes", color: "#22c55e" },
 ];
 
-export function PriceChart({ data, symbol: _symbol }: PriceChartProps) {
+export function PriceChart({ data }: PriceChartProps) {
   const [tab, setTab] = useState<TabType>("historique");
   const [period, setPeriod] = useState<PeriodKey>("Max");
   const [hiddenH, setHiddenH] = useState<Set<string>>(new Set());
@@ -93,14 +92,12 @@ export function PriceChart({ data, symbol: _symbol }: PriceChartProps) {
     setPeriod("Max");
   }, []);
 
-  // Reset slider when data changes
+  // Reset slider when the dataset itself changes
   useEffect(() => {
     setSliderStart(0);
     setSliderEnd(allSampled.length - 1);
     setPeriod("Max");
-  // Intentional: reset slider only when the dataset itself changes, not on every render
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.length]);
+  }, [allSampled.length]);
 
   const safeEnd = Math.min(sliderEnd, allSampled.length - 1);
   const safeStart = Math.min(sliderStart, safeEnd);

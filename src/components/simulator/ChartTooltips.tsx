@@ -2,9 +2,21 @@
 
 import { formatEur } from "@/lib/utils/formatters";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function TooltipHistorique({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
+interface TooltipEntry {
+  dataKey: string;
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface TooltipPayload {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string;
+}
+
+export function TooltipHistorique({ active, payload, label }: TooltipPayload) {
+  if (!active || !payload?.length || !label) return null;
   const d = new Date(label);
   const dateLabel = d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
@@ -42,9 +54,8 @@ export function TooltipHistorique({ active, payload, label }: any) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function TooltipGainsPertres({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
+export function TooltipGainsPertres({ active, payload, label }: TooltipPayload) {
+  if (!active || !payload?.length || !label) return null;
   const d = new Date(label);
   const dateLabel = d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
