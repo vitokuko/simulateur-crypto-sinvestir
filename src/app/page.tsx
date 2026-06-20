@@ -79,7 +79,7 @@ export default function Home() {
           </p>
         </div>
         <Link
-          href="/simulateur-crypto"
+          href="/simulateurs"
           className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-light text-white shrink-0"
           style={{ background: "linear-gradient(to right, #1a52e8, #0a3080)" }}
         >

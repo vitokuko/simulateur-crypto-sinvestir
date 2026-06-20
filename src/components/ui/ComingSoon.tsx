@@ -51,7 +51,7 @@ export function ComingSoon({ title }: ComingSoonProps) {
       </p>
 
       <Link
-        href="/simulateur-crypto"
+        href="/simulateurs"
         className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-light text-white transition-all duration-300"
         style={{ background: "linear-gradient(to right, #0049C6, #04265F)" }}
       >
