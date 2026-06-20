@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { X, Link, Check } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { X, Link, Check, Download, Loader2 } from "lucide-react";
+import { toPng } from "html-to-image";
 import type { SimulationResult } from "@/types/simulator";
 import type { Frequency } from "@/types/simulator";
-import { formatEur, formatTokens } from "@/lib/utils/formatters";
+import { SimulationShareCard } from "@/components/simulator/SimulationShareCard";
+import { SINVESTIR_LOGO_DATA_URL } from "@/lib/logoDataUrl";
 
 interface ShareModalProps {
   open: boolean;
@@ -24,23 +26,12 @@ const FREQUENCY_LABELS: Record<Frequency, string> = {
   monthly: "DCA mensuel",
 };
 
-function formatPeriod(start: string, end: string) {
-  const fmt = (d: string) =>
-    new Date(d).toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
-  return `${fmt(start)} → ${fmt(end)}`;
-}
-
-function buildShareText(result: SimulationResult, symbol: string, frequency: Frequency | undefined, url: string) {
-  const gain = result.gainLossPercent >= 0 ? `+${result.gainLossPercent.toFixed(1)}%` : `${result.gainLossPercent.toFixed(1)}%`;
-  const freq = frequency ? FREQUENCY_LABELS[frequency] : "DCA";
-  return `J'ai simulé un ${freq} sur ${symbol} avec le simulateur S'investir 📈\n\n💰 Capital final : ${formatEur(result.finalValue)}\n📊 Performance : ${gain}\n💵 Investi : ${formatEur(result.totalInvested)}\n\nSimule tes gains crypto 👇\n${url}`;
-}
-
 const SOCIAL_BUTTONS = [
   {
     id: "twitter",
     label: "Twitter / X",
-    color: "#000",
+    color: "#fff",
+    bg: "rgba(255,255,255,0.06)",
     border: "rgba(255,255,255,0.12)",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -53,6 +44,7 @@ const SOCIAL_BUTTONS = [
     id: "linkedin",
     label: "LinkedIn",
     color: "#0A66C2",
+    bg: "rgba(10,102,194,0.08)",
     border: "rgba(10,102,194,0.3)",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -66,6 +58,7 @@ const SOCIAL_BUTTONS = [
     id: "whatsapp",
     label: "WhatsApp",
     color: "#25D366",
+    bg: "rgba(37,211,102,0.08)",
     border: "rgba(37,211,102,0.25)",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -78,26 +71,79 @@ const SOCIAL_BUTTONS = [
 
 export function ShareModal({ open, onClose, result, symbol, frequency, startDate, endDate, url }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const freq = frequency ? FREQUENCY_LABELS[frequency] : "DCA";
+  const gain = result.gainLossPercent >= 0
+    ? `+${result.gainLossPercent.toFixed(1)}%`
+    : `${result.gainLossPercent.toFixed(1)}%`;
+  const shareText = `J'ai simulé un ${freq} sur ${symbol} avec le simulateur S'investir 📈\n\n💰 Capital final : ${result.finalValue.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}\n📊 Performance : ${gain}\n\nSimule tes gains crypto 👇\n${url}`;
+
+  // Generate image when modal opens
+  const generateImage = useCallback(async () => {
+    if (!cardRef.current) return;
+    setGenerating(true);
+    try {
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
+      setImageDataUrl(dataUrl);
+    } catch {
+      // silently fail — download button will try again
+    } finally {
+      setGenerating(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) { setImageDataUrl(null); return; }
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+    const t = setTimeout(generateImage, 300);
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      clearTimeout(t);
     };
-  }, [open, onClose]);
+  }, [open, onClose, generateImage]);
 
   if (!open) return null;
 
-  const shareText = buildShareText(result, symbol, frequency, url);
-  const isGain = result.gainLoss >= 0;
-  const gainColor = isGain ? "#22c55e" : "#ef4444";
-  const gainLabel = result.gainLossPercent >= 0
-    ? `+${result.gainLossPercent.toFixed(1)}%`
-    : `${result.gainLossPercent.toFixed(1)}%`;
+  async function handleDownload() {
+    if (imageDataUrl) {
+      const link = document.createElement("a");
+      link.download = `simulation-${symbol}-${new Date().toISOString().split("T")[0]}.png`;
+      link.href = imageDataUrl;
+      link.click();
+      return;
+    }
+    // Fallback: regenerate
+    if (!cardRef.current) return;
+    setGenerating(true);
+    try {
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
+      const link = document.createElement("a");
+      link.download = `simulation-${symbol}-${new Date().toISOString().split("T")[0]}.png`;
+      link.href = dataUrl;
+      link.click();
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function handleSocialShare(getUrl: (text: string, url: string) => string) {
+    // Download image first, then open social
+    if (imageDataUrl) {
+      const link = document.createElement("a");
+      link.download = `simulation-${symbol}.png`;
+      link.href = imageDataUrl;
+      link.click();
+    }
+    setTimeout(() => {
+      window.open(getUrl(shareText, url), "_blank", "noopener,noreferrer");
+    }, 400);
+  }
 
   async function handleCopy() {
     await navigator.clipboard.writeText(url);
@@ -108,9 +154,26 @@ export function ShareModal({ open, onClose, result, symbol, frequency, startDate
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+      style={{ backgroundColor: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}
       onClick={onClose}
     >
+      {/* Hidden card for capture — off screen */}
+      <div
+        style={{ position: "fixed", top: -9999, left: -9999, pointerEvents: "none" }}
+        aria-hidden="true"
+      >
+        <div ref={cardRef}>
+          <SimulationShareCard
+            result={result}
+            symbol={symbol}
+            frequency={frequency}
+            startDate={startDate}
+            endDate={endDate}
+            logoDataUrl={SINVESTIR_LOGO_DATA_URL}
+          />
+        </div>
+      </div>
+
       <div
         role="dialog"
         aria-modal="true"
@@ -133,7 +196,7 @@ export function ShareModal({ open, onClose, result, symbol, frequency, startDate
               Partager mes résultats
             </h2>
             <p className="text-xs font-light mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
-              Montre ta simulation à tes proches
+              Télécharge ton image ou partage sur les réseaux
             </p>
           </div>
           <button
@@ -147,115 +210,93 @@ export function ShareModal({ open, onClose, result, symbol, frequency, startDate
           </button>
         </div>
 
-        <div className="px-6 py-5 space-y-5">
-          {/* Preview card */}
+        <div className="px-6 py-5 space-y-4">
+          {/* Image preview — cropped to top (header + KPIs only) */}
           <div
-            className="rounded-2xl p-5 space-y-4"
+            className="rounded-xl overflow-hidden relative"
             style={{
-              background: "linear-gradient(135deg, rgba(16,152,247,0.08) 0%, rgba(0,73,198,0.06) 100%)",
-              border: "1px solid rgba(16,152,247,0.2)",
+              backgroundColor: "#0d1a2d",
+              border: "1px solid rgba(255,255,255,0.08)",
+              height: 160,
             }}
           >
-            {/* Header preview */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold"
-                  style={{ backgroundColor: "rgba(16,152,247,0.15)", color: "#1098F7" }}
-                >
-                  {symbol.slice(0, 2).toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-white text-sm font-medium">{symbol}</p>
-                  <p className="text-xs font-light" style={{ color: "rgba(255,255,255,0.35)" }}>
-                    {frequency ? FREQUENCY_LABELS[frequency] : ""}
-                  </p>
-                </div>
+            {generating && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 size={24} className="animate-spin" style={{ color: "#1098F7" }} />
               </div>
-              <div className="text-right">
+            )}
+            {imageDataUrl && !generating && (
+              <>
+                <img
+                  src={imageDataUrl}
+                  alt="Aperçu de ta simulation"
+                  style={{
+                    width: "100%",
+                    objectFit: "cover",
+                    objectPosition: "top",
+                    display: "block",
+                  }}
+                />
+                {/* fade bottom */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-10"
+                  style={{ background: "linear-gradient(to bottom, transparent, #0d1a2d)" }}
+                />
                 <p
-                  className="text-lg font-semibold tabular-nums"
-                  style={{ color: gainColor }}
+                  className="absolute bottom-2 right-3 text-xs font-light"
+                  style={{ color: "rgba(255,255,255,0.75)" }}
                 >
-                  {gainLabel}
+                  Aperçu partiel · image complète au téléchargement
                 </p>
-                <p className="text-xs font-light" style={{ color: "rgba(255,255,255,0.35)" }}>
-                  {formatPeriod(startDate, endDate)}
-                </p>
-              </div>
-            </div>
-
-            {/* KPIs */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: "Capital final", value: formatEur(result.finalValue), color: "#93c5fd" },
-                { label: "Gains / Pertes", value: formatEur(result.gainLoss), color: gainColor },
-                { label: "Investi", value: formatEur(result.totalInvested), color: "#7c3aed" },
-              ].map((kpi) => (
-                <div
-                  key={kpi.label}
-                  className="rounded-xl p-3 text-center"
-                  style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
-                >
-                  <p className="text-xs font-light mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
-                    {kpi.label}
-                  </p>
-                  <p className="text-sm font-medium tabular-nums" style={{ color: kpi.color }}>
-                    {kpi.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Tokens row */}
-            <div
-              className="flex items-center justify-between rounded-xl px-4 py-2.5"
-              style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
-            >
-              <span className="text-xs font-light" style={{ color: "rgba(255,255,255,0.4)" }}>
-                Tokens acquis
-              </span>
-              <span className="text-sm font-medium tabular-nums" style={{ color: "#eab308" }}>
-                {formatTokens(result.tokensAcquired)} {symbol}
-              </span>
-            </div>
-
-            {/* Branding */}
-            <p className="text-center text-xs font-light" style={{ color: "rgba(255,255,255,0.2)" }}>
-              simulateur-crypto-sinvestir.vercel.app
-            </p>
+              </>
+            )}
           </div>
 
+          {/* Download button — primary */}
+          <button
+            onClick={handleDownload}
+            disabled={generating}
+            className="w-full flex items-center justify-center gap-3 rounded-xl py-3.5 font-light text-sm transition-all duration-200"
+            style={{
+              background: generating ? "rgba(16,152,247,0.2)" : "linear-gradient(to right, #1098F7, #0049C6)",
+              color: "#fff",
+              opacity: generating ? 0.7 : 1,
+            }}
+          >
+            {generating
+              ? <><Loader2 size={16} className="animate-spin" /> Génération en cours…</>
+              : <><Download size={16} /> Télécharger l&apos;image</>
+            }
+          </button>
+
           {/* Social buttons */}
-          <div className="space-y-2">
+          <div>
             <p className="text-xs font-light mb-3" style={{ color: "rgba(255,255,255,0.35)" }}>
-              Partager sur
+              Partager sur les réseaux — l&apos;image sera téléchargée automatiquement
             </p>
             <div className="grid grid-cols-3 gap-2">
               {SOCIAL_BUTTONS.map((btn) => (
-                <a
+                <button
                   key={btn.id}
-                  href={btn.getUrl(shareText, url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={() => handleSocialShare(btn.getUrl)}
                   className="flex flex-col items-center gap-2 rounded-xl py-3.5 px-2 transition-all duration-200"
                   style={{
-                    backgroundColor: "rgba(255,255,255,0.04)",
+                    backgroundColor: btn.bg,
                     border: `1px solid ${btn.border}`,
-                    color: btn.color === "#000" ? "#fff" : btn.color,
+                    color: btn.color,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)";
+                    e.currentTarget.style.opacity = "0.8";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.04)";
+                    e.currentTarget.style.opacity = "1";
                   }}
                 >
                   {btn.icon}
                   <span className="text-xs font-light" style={{ color: "rgba(255,255,255,0.6)" }}>
                     {btn.label}
                   </span>
-                </a>
+                </button>
               ))}
             </div>
           </div>
@@ -288,10 +329,7 @@ export function ShareModal({ open, onClose, result, symbol, frequency, startDate
                 </p>
               </div>
             </div>
-            <span
-              className="text-xs font-light shrink-0"
-              style={{ color: copied ? "#22c55e" : "rgba(255,255,255,0.3)" }}
-            >
+            <span className="text-xs font-light shrink-0" style={{ color: copied ? "#22c55e" : "rgba(255,255,255,0.3)" }}>
               {copied ? "✓" : "Copier"}
             </span>
           </button>
