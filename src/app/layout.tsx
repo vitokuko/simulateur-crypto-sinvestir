@@ -120,7 +120,7 @@ export default function RootLayout({
                 {" "}|{" "}
                 <a href="/notice" rel="noopener noreferrer" target="_blank" className="hover:underline">Notice simulateur</a>
                 {" "}|{" "}
-                <a href="https://pulsion-studio.com/?utm_source=simulateurs.sinvestir.fr" rel="noopener noreferrer" target="_blank" className="hover:underline">Création PULSION STUDIO</a>
+                <a href="https://github.com/vitokuko" rel="noopener noreferrer" target="_blank" className="hover:underline">Création Souaibou Mbouille Ndiaye</a>
               </p>
             </footer>
           </div>
