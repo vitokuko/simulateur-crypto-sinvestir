@@ -273,13 +273,13 @@ function NavContent({
       {/* User card */}
       <div className={`flex items-center gap-3 ${collapsed ? "justify-center px-0" : "px-6"}`}>
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 border border-white/10 text-lg font-medium text-white shrink-0">
-          SM
+          TU
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-normal text-white truncate">souaibou mbouille ndiaye</p>
+            <p className="text-sm font-normal text-white truncate">Test Utilisateur</p>
             <p className="text-xs font-light truncate" style={{ color: "#7899ce" }}>
-              souaibouesp@gmail.com
+              test@sinvestir.fr
             </p>
           </div>
         )}
