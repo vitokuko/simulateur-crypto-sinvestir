@@ -74,6 +74,10 @@ import { CryptoSimulator } from "@/components/simulator/CryptoSimulator";
 | `syncUrl` | `boolean` | `true` | Synchronise l'état avec les query params URL (désactiver pour les iframes) |
 | `onResult` | `function` | — | Callback appelé à chaque mise à jour des résultats |
 
+### Diagramme d'architecture
+
+![Architecture CryptoSimulator](./public/architecture.svg)
+
 ### Pourquoi ce design ?
 
 - **Aucun store global** — pas de Redux, pas de Zustand. L'état est local au composant.
