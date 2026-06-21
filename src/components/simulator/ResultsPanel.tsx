@@ -1,9 +1,47 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import { useState } from "react";
+import { Wallet, X } from "lucide-react";
 import type { SimulationResult } from "@/types/simulator";
 import type { Frequency } from "@/types/simulator";
 import { formatEur, formatTokens } from "@/lib/utils/formatters";
+
+const YOUTUBE_VIDEO_ID = "6StPxejOdCc";
+const YOUTUBE_PLAYLIST = "PLu3RiIsD-GLtP6ti39E4jhjPChHtqSNnG";
+
+function VideoModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-3xl rounded-2xl overflow-hidden"
+        style={{ backgroundColor: "#0b1120", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 25px 60px rgba(0,0,0,0.6)" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 rounded-lg p-1.5 transition-colors"
+          style={{ color: "rgba(255,255,255,0.5)", backgroundColor: "rgba(0,0,0,0.4)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
+        >
+          <X size={18} />
+        </button>
+        <div style={{ position: "relative", paddingBottom: "56.25%", height: 0 }}>
+          <iframe
+            src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&list=${YOUTUBE_PLAYLIST}`}
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface ResultsPanelProps {
   result: SimulationResult | null;
@@ -30,6 +68,8 @@ function frequencyLabel(freq: Frequency): string {
 }
 
 export function ResultsPanel({ result, symbol, frequency, amount, isLoading, isFetching, error }: ResultsPanelProps) {
+  const [videoOpen, setVideoOpen] = useState(false);
+
   // First load with no data yet — show spinner
   if (isLoading && !result) {
     return (
@@ -66,7 +106,30 @@ export function ResultsPanel({ result, symbol, frequency, amount, isLoading, isF
   const investedAmt = amount ?? result.totalInvested;
 
   return (
+    <div>
+    {videoOpen && <VideoModal onClose={() => setVideoOpen(false)} />}
     <div className="flex flex-col gap-3 relative">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-3">
+          <div style={{ width: 4, height: 28, backgroundColor: "#1098F7", borderRadius: 2 }} />
+          <h2 className="text-xl font-light text-white">Vos résultats</h2>
+        </div>
+        <button
+          onClick={() => setVideoOpen(true)}
+          className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-light text-white transition-all duration-[400ms]"
+          style={{ background: "linear-gradient(to right, #0049C6, #04265F)", border: "1px solid transparent" }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#3d5af1")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "transparent")}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.2917 8.32395C11.157 8.83558 10.5206 9.19711 9.2479 9.92018C8.01754 10.6192 7.40236 10.9687 6.9066 10.8282C6.70164 10.7701 6.51489 10.6598 6.36428 10.5078C6 10.1403 6 9.42743 6 8.00167C6 6.57592 6 5.86304 6.36428 5.49551C6.51489 5.34356 6.70164 5.23325 6.9066 5.17517C7.40236 5.03468 8.01754 5.38418 9.2479 6.08317C10.5206 6.80623 11.157 7.16777 11.2917 7.6794C11.3472 7.89058 11.3472 8.11276 11.2917 8.32395Z" stroke="currentColor" strokeLinejoin="round" />
+            <path d="M14.6668 8.0013C14.6668 4.3194 11.6821 1.33464 8.00016 1.33464C4.31826 1.33464 1.3335 4.3194 1.3335 8.0013C1.3335 11.6832 4.31826 14.668 8.00016 14.668C11.6821 14.668 14.6668 11.6832 14.6668 8.0013Z" stroke="currentColor" />
+          </svg>
+          Voir notre vidéo tuto
+        </button>
+      </div>
+
       {/* Subtle refetch indicator — top border pulse, no content replacement */}
       {isFetching && (
         <div
@@ -215,6 +278,7 @@ export function ResultsPanel({ result, symbol, frequency, amount, isLoading, isF
         </div>
       </div>
 
+    </div>
     </div>
   );
 }
